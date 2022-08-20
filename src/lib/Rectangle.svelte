@@ -8,7 +8,7 @@ import { onMount } from "svelte";
 
 
     export let min_y = 1/3; // percentage of screen height
-    export let min_duration=30*1000; // in miliseconds
+    export let min_duration=20*1000; // in miliseconds
     export let max_duration = 30*1000; // in miliseconds
     export let min_width = 0.5; // percentage of screen width
     export let max_width = 1.5;

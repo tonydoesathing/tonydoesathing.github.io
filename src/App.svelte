@@ -20,9 +20,17 @@ import Rectangle from './lib/Rectangle.svelte'
 
 <style>
   h1{
-    position: absolute;
+    position: fixed;
+    font-size: 15vh;
     top:30%;
-    right:-6px;
+    right:calc(6/128*15vh*-1);
     text-align: right;
   }
+  @media screen and (orientation:portrait) {
+  h1{
+    font-size: 15vw;
+    line-height: 12vw;
+    right:calc(6/128*15vw*-1);
+  }
+}
 </style>

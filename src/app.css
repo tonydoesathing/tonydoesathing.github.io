@@ -26,22 +26,23 @@ svg{
 
 h1 {
   font-family: Forum, serif;
-  font-size: 128px;
+  
   color: var(--background);
   mix-blend-mode: difference;
   margin: 0;
   z-index: 5;
 }
 
+
 h2 {
   font-family: Roboto, sans-serif;
-  /* font-size:96px;
-  line-height: 72px; */
-  font-size:64px;
-  line-height: 44px;
   margin: 0;
   
   color: var(--background);
+}
+
+h2:hover{
+  text-decoration: underline;
 }
 
 a{
