@@ -1,6 +1,5 @@
 <script>
 import { tweened } from 'svelte/motion';
-	import { cubicOut } from 'svelte/easing';
 
 
 
@@ -42,7 +41,7 @@ import { onMount } from "svelte";
     }
 
     onMount(async () => {
-        setTimeout(()=>reset(), Math.random()*max_duration);
+        reset();
 	});
 
 </script>

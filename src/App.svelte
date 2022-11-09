@@ -1,6 +1,4 @@
 <script>
-  import svelteLogo from './assets/svelte.svg'
-  import Counter from './lib/Counter.svelte'
 import Menu from './lib/Menu.svelte'
 import Rectangle from './lib/Rectangle.svelte'
 </script>

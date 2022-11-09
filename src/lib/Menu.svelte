@@ -52,7 +52,6 @@ a{
 
 <div class="menu">
     <a href="https://github.com/tonydoesathing"><h2 id="first">github</h2></a>
-    
     <a href="http://tonydoesathing.github.io/TonyMastromarinoResume.pdf"><h2 id="second">resume</h2> </a>
     <a href="mailto:t_mastromarino@coloradocollege.edu"><h2 id="third">email</h2></a>
 </div>
