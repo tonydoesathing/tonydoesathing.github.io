@@ -57,6 +57,33 @@
   });
 
   let dark = document.documentElement.dataset.theme === 'dark';
+  let preference = null;
+  const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
+  const validPreference = value => value === 'light' || value === 'dark' ? value : null;
+
+  function applyTheme() {
+    dark = preference ? preference === 'dark' : systemTheme.matches;
+    document.documentElement.dataset.theme = dark ? 'dark' : 'light';
+  }
+
+  onMount(() => {
+    try { preference = validPreference(localStorage.getItem('theme')); } catch {}
+    applyTheme();
+    const onSystemChange = () => { if (!preference) applyTheme(); };
+    const onStorageChange = event => {
+      if (event.key !== 'theme' && event.key !== null) return;
+      // Ignore unrelated sessionStorage events. A cleared setting resumes auto.
+      try { if (event.storageArea !== localStorage) return; } catch { return; }
+      preference = validPreference(event.newValue);
+      applyTheme();
+    };
+    systemTheme.addEventListener('change', onSystemChange);
+    window.addEventListener('storage', onStorageChange);
+    return () => {
+      systemTheme.removeEventListener('change', onSystemChange);
+      window.removeEventListener('storage', onStorageChange);
+    };
+  });
   let motion = '';
   let pressed = false;
 
@@ -85,11 +112,10 @@
   }
 
   function toggle() {
-    dark = !dark;
-    const theme = dark ? 'dark' : 'light';
-    document.documentElement.dataset.theme = theme;
+    preference = dark ? 'light' : 'dark';
+    applyTheme();
     try {
-      localStorage.setItem('theme', theme);
+      localStorage.setItem('theme', preference);
     } catch {
       // The control also works when browser storage is unavailable.
     }

@@ -3,12 +3,15 @@
   <head>
     <meta charset="UTF-8" />
     <script>
-      // Restore the selected theme before the page paints.
+      // Apply a saved choice, or the system preference, before the first paint.
+      let savedTheme;
       try {
-        if (localStorage.getItem('theme') === 'dark') {
-          document.documentElement.dataset.theme = 'dark';
-        }
+        savedTheme = localStorage.getItem('theme');
       } catch {}
+      document.documentElement.dataset.theme =
+        savedTheme === 'light' || savedTheme === 'dark'
+          ? savedTheme
+          : window.matchMedia('(prefers-color-scheme: dark)').matches ? 'dark' : 'light';
     </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <meta name="description" content="Tony Mastromarino — projects on GitHub, résumé, and contact." />
