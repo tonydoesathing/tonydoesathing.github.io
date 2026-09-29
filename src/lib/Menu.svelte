@@ -1,4 +1,8 @@
-<nav class="menu" aria-label="Primary">
+<script>
+  import { wordHitArea } from './wordHitArea.js';
+</script>
+
+<nav use:wordHitArea class="menu" aria-label="Primary">
   <a id="first" href="https://github.com/tonydoesathing">github</a>
   <a id="second" href="/TonyMastromarinoResume.pdf">resume</a>
   <a id="third" href="mailto:mastromarino.tony@gmail.com">email</a>
