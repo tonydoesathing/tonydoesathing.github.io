@@ -54,5 +54,44 @@ export function measureLetter(element) {
   const y = offsetY + top / scale;
   // Align internal cuts to physical pixels, including a fractional glyph origin.
   const cut = (fraction) => Math.round((y + height * fraction) * scale) / scale - y;
-  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), stroke: Math.max(1, size / 22) };
+  const glyphs = halfFilledGlyphs(data, canvas.width, left, top, right, bottom);
+  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), ...glyphs };
+}
+
+
+// Reuse the rasterized font outline, filling only the space between the two
+// strokes of the o. Its asymmetric contour and varying stroke weight survive.
+function halfFilledGlyphs(source, sourceWidth, left, top, right, bottom) {
+  const width = right - left;
+  const height = bottom - top;
+  const canvas = document.createElement('canvas');
+  canvas.width = width;
+  canvas.height = height;
+  const context = canvas.getContext('2d');
+  const normal = context.createImageData(width, height);
+  const inverted = context.createImageData(width, height);
+
+  for (let y = 0; y < height; y += 1) {
+    const alphaAt = x => source[((y + top) * sourceWidth + x + left) * 4 + 3];
+    let firstStroke = width;
+    let lastStroke = -1;
+    for (let x = 0; x < width; x += 1) {
+      if (alphaAt(x) >= 128) {
+        firstStroke = Math.min(firstStroke, x);
+        lastStroke = x;
+      }
+    }
+    for (let x = 0; x < width; x += 1) {
+      const index = (y * width + x) * 4;
+      const alpha = alphaAt(x);
+      const inside = x > firstStroke && x < lastStroke;
+      const leftCoverage = Math.min(1, Math.max(0, width / 2 - x));
+      normal.data.set([255, 255, 255, inside ? alpha + (255 - alpha) * leftCoverage : alpha], index);
+      inverted.data.set([255, 255, 255, inside ? alpha + (255 - alpha) * (1 - leftCoverage) : alpha], index);
+    }
+  }
+  context.putImageData(normal, 0, 0);
+  const glyph = canvas.toDataURL();
+  context.putImageData(inverted, 0, 0);
+  return { glyph, invertedGlyph: canvas.toDataURL() };
 }

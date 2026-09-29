@@ -75,7 +75,7 @@
 
 {#if bounds}
 <button
-  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --stroke: {bounds.stroke}px"
+  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}'); --inverted-glyph: url('{bounds.invertedGlyph}')"
   type="button"
   aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
   on:click={toggle}
@@ -114,10 +114,9 @@
   .glyph {
     position: absolute;
     inset: 0;
-    box-sizing: border-box;
-    border: var(--stroke) solid currentColor;
-    border-radius: 50%;
-    background: linear-gradient(90deg, currentColor 50%, transparent 50%);
+    background-image: var(--glyph);
+    background-size: 100% 100%;
+    background-repeat: no-repeat;
   }
   /* Cuts are snapped to device pixels to keep the three pieces seamless. */
   .top { clip-path: inset(0 0 calc(100% - var(--cut-top)) 0); }
@@ -129,9 +128,9 @@
   .bottom { clip-path: inset(var(--cut-bottom) 0 0 0); }
   .enter .middle { transform: translateX(-4px); }
   .fire .middle { transform: translateX(8px); }
-  .fire .middle, .recover .middle { transition-duration: 160ms; }
+  .fire .middle, .recover .middle { transition-duration: 60ms; }
   .fire .glyph {
-    background: linear-gradient(90deg, transparent 50%, currentColor 50%);
+    background-image: var(--inverted-glyph);
   }
   @media (prefers-reduced-motion: reduce) {
     .middle { transition: none; }
