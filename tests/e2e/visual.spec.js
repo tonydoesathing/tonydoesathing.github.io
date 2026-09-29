@@ -13,7 +13,7 @@ test.skip(({ browserName }) => browserName !== 'chromium', 'Baselines are Chromi
 
 for (const [layout, viewport] of Object.entries(layouts)) {
   for (const colorScheme of ['light', 'dark']) {
-    test(`${layout} ${colorScheme}`, async ({ page }) => {
+    test(`${layout} ${colorScheme}`, { tag: '@visual' }, async ({ page }) => {
       await page.setViewportSize(viewport);
       await page.emulateMedia({ colorScheme });
       await load(page);

@@ -14,7 +14,9 @@ test('exposes the heading, primary navigation and theme toggle', async ({ page }
         - /url: mailto:mastromarino.tony@gmail.com
   `);
   // Decoration stays out of the tree; the order of these may change.
-  const children = (await page.getByRole('main').ariaSnapshot()).split('\n').filter(line => line.startsWith('  - '));
+  const children = (await page.getByRole('main').ariaSnapshot())
+    .split('\n')
+    .filter(line => line.startsWith('  - '));
   expect(children.sort()).toEqual([
     '  - button "Switch to dark mode"',
     '  - heading "Tony Mastromarino" [level=1]',
@@ -36,10 +38,15 @@ test('logs no console errors', async ({ page }) => {
 
 test('background bars keep their progress across a resize', async ({ page }) => {
   // Every bar starts halfway along a fixed path, far from its end.
-  await page.addInitScript(() => { Math.random = () => 0.5; });
+  await page.addInitScript(() => {
+    Math.random = () => 0.5;
+  });
   await load(page);
   // The bars are the only animations running at rest.
-  const progress = () => page.evaluate(() => document.getAnimations().map(animation => animation.effect.getComputedTiming().progress));
+  const progress = () =>
+    page.evaluate(() =>
+      document.getAnimations().map(animation => animation.effect.getComputedTiming().progress),
+    );
   const before = await progress();
   expect(before).toHaveLength(3);
   await page.setViewportSize({ width: 1000, height: 900 });

@@ -3,14 +3,19 @@
   import { wordHitArea } from './wordHitArea.js';
 
   let phases = {};
+  // Plain Maps: this bookkeeping never renders, so it needn't be reactive.
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const timers = new Map();
+  // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const intents = new Map();
   const links = [
     { id: 'first', label: 'github', href: 'https://github.com/tonydoesathing' },
     { id: 'second', label: 'resume', href: '/TonyMastromarinoResume.pdf' },
     { id: 'third', label: 'email', href: 'mailto:mastromarino.tony@gmail.com' },
   ];
-  function setPhase(id, phase) { phases = { ...phases, [id]: phase }; }
+  function setPhase(id, phase) {
+    phases = { ...phases, [id]: phase };
+  }
   function intent(id) {
     if (!intents.has(id)) intents.set(id, { hover: false, held: false, press: false });
     return intents.get(id);
@@ -26,11 +31,14 @@
   function run(id, phase, duration) {
     setPhase(id, phase);
     const delay = matchMedia('(prefers-reduced-motion: reduce)').matches ? 0 : duration;
-    timers.set(id, setTimeout(() => {
-      timers.delete(id);
-      if (phase === 'exit' || phase === 'release') setPhase(id, 'spent');
-      advance(id);
-    }, delay));
+    timers.set(
+      id,
+      setTimeout(() => {
+        timers.delete(id);
+        if (phase === 'exit' || phase === 'release') setPhase(id, 'spent');
+        advance(id);
+      }, delay),
+    );
   }
   function advance(id) {
     if (timers.has(id)) return;
@@ -74,11 +82,15 @@
 </script>
 
 <nav use:wordHitArea class="menu" aria-label="Primary">
-  {#each links as link}
-    <a id={link.id} href={link.href}
+  {#each links as link (link.id)}
+    <a
+      id={link.id}
+      href={link.href}
       data-phase={phases[link.id] || ''}
       on:pointerenter={() => enter(link.id)}
-      on:focus={event => { if (event.currentTarget.matches(':focus-visible')) enter(link.id); }}
+      on:focus={event => {
+        if (event.currentTarget.matches(':focus-visible')) enter(link.id);
+      }}
       on:pointerdown={event => press(event, link.id)}
       on:pointerup={() => release(link.id)}
       on:pointerleave={() => leave(link.id)}
@@ -86,7 +98,8 @@
       on:keydown={event => press(event, link.id)}
       on:keyup={() => release(link.id)}
       on:blur={() => leave(link.id)}
-      on:click={() => release(link.id)}>{link.label}</a>
+      on:click={() => release(link.id)}>{link.label}</a
+    >
   {/each}
 </nav>
 
@@ -111,10 +124,15 @@
     text-decoration: none;
   }
 
-  #first { left: calc(13 / 64 * 8vh * -0.9); }
-  #second { left: calc(41 / 64 * 8vh); }
-  #third { left: calc(174 / 64 * 8vh); }
-
+  #first {
+    left: calc(13 / 64 * 8vh * -0.9);
+  }
+  #second {
+    left: calc(41 / 64 * 8vh);
+  }
+  #third {
+    left: calc(174 / 64 * 8vh);
+  }
 
   a:focus-visible {
     outline: 2px solid white;
@@ -128,14 +146,23 @@
       line-height: calc(6vh / (64 / 47));
     }
 
-    #first { left: calc(13 / 64 * 6vh * -1); }
-    #second { left: calc(41 / 64 * 6vh); }
-    #third { left: calc(174 / 64 * 6vh); }
+    #first {
+      left: calc(13 / 64 * 6vh * -1);
+    }
+    #second {
+      left: calc(41 / 64 * 6vh);
+    }
+    #third {
+      left: calc(174 / 64 * 6vh);
+    }
   }
 
   /* The underline's bottom and width stay fixed as it grows into the box. */
   a {
-    --box-top: calc(var(--ink-top) - (var(--underline-top) + var(--underline-height) - var(--ink-top) - var(--ink-height)));
+    --box-top: calc(
+      var(--ink-top) -
+        (var(--underline-top) + var(--underline-height) - var(--ink-top) - var(--ink-height))
+    );
   }
   .menu :global(.link-bar) {
     position: absolute;
@@ -183,10 +210,37 @@
     }
   }
   @keyframes bar-grow {
-    from { top: var(--underline-top); height: var(--underline-height); }
-    to { top: var(--box-top); height: calc(var(--underline-top) + var(--underline-height) - var(--box-top)); }
+    from {
+      top: var(--underline-top);
+      height: var(--underline-height);
+    }
+    to {
+      top: var(--box-top);
+      height: calc(var(--underline-top) + var(--underline-height) - var(--box-top));
+    }
   }
-  @keyframes bar-enter { from { transform: scaleX(0); } to { transform: scaleX(1); } }
-  @keyframes bar-exit { from { transform: scaleX(1); } to { transform: scaleX(0); } }
-  @keyframes bar-exit-up { from { transform: scaleY(1); } to { transform: scaleY(0); } }
+  @keyframes bar-enter {
+    from {
+      transform: scaleX(0);
+    }
+    to {
+      transform: scaleX(1);
+    }
+  }
+  @keyframes bar-exit {
+    from {
+      transform: scaleX(1);
+    }
+    to {
+      transform: scaleX(0);
+    }
+  }
+  @keyframes bar-exit-up {
+    from {
+      transform: scaleY(1);
+    }
+    to {
+      transform: scaleY(0);
+    }
+  }
 </style>

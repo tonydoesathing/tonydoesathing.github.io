@@ -10,7 +10,8 @@ export function wordHitArea(menu) {
   const entries = [...menu.querySelectorAll('a')].map(link => {
     const baseline = document.createElement('span');
     baseline.setAttribute('aria-hidden', 'true');
-    baseline.style.cssText = 'display:inline-block;width:0;height:0;vertical-align:baseline;pointer-events:none';
+    baseline.style.cssText =
+      'display:inline-block;width:0;height:0;vertical-align:baseline;pointer-events:none';
     const hitArea = document.createElement('span');
     hitArea.setAttribute('aria-hidden', 'true');
     hitArea.style.cssText = 'position:absolute;pointer-events:auto;cursor:pointer';
@@ -22,7 +23,6 @@ export function wordHitArea(menu) {
     bar.setAttribute('aria-hidden', 'true');
     link.append(baseline, ink, bar, hitArea);
     return { link, baseline, hitArea, ink, bar };
-
   });
 
   let pendingFrame = 0;
@@ -53,7 +53,10 @@ export function wordHitArea(menu) {
         const scale = window.devicePixelRatio || 1;
         const snap = value => Math.round(value * scale) / scale;
         link.style.setProperty('--underline-width', `${rect.width}px`);
-        link.style.setProperty('--underline-top', `${snap(baseline.getBoundingClientRect().top + size * 0.06) - rect.top}px`);
+        link.style.setProperty(
+          '--underline-top',
+          `${snap(baseline.getBoundingClientRect().top + size * 0.06) - rect.top}px`,
+        );
         link.style.setProperty('--underline-height', `${Math.max(1 / scale, snap(size / 12))}px`);
       });
       const boxes = entries.map(({ link, baseline }) => {
@@ -70,7 +73,8 @@ export function wordHitArea(menu) {
       // Split the small vertical overlap between neighboring word rectangles.
       // Letter counters and the spaces between letters remain clickable.
       for (let i = 1; i < boxes.length; i += 1) {
-        const previous = boxes[i - 1], current = boxes[i];
+        const previous = boxes[i - 1],
+          current = boxes[i];
         if (previous && current && previous.bottom > current.top) {
           const boundary = (previous.bottom + current.top) / 2;
           previous.bottom = current.top = boundary;
@@ -109,7 +113,8 @@ export function wordHitArea(menu) {
         ink.remove();
         bar.remove();
         for (const prefix of ['ink', 'underline']) {
-          for (const dimension of ['left', 'top', 'width', 'height']) link.style.removeProperty(`--${prefix}-${dimension}`);
+          for (const dimension of ['left', 'top', 'width', 'height'])
+            link.style.removeProperty(`--${prefix}-${dimension}`);
         }
         link.style.removeProperty('color');
         baseline.remove();

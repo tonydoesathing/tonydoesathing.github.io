@@ -5,6 +5,8 @@ const TEXT_RENDERING = {
   geometricprecision: 'geometricPrecision',
 };
 
+const FONT_KERNING = { auto: 'auto', normal: 'normal', none: 'none' };
+
 // Render from the HTML text's baseline and physical-pixel origin. Both the
 // theme glyph and link hit regions must match the actual loaded font.
 export function rasterizeText(element, baselineElement, hitSlop = 0) {
@@ -22,10 +24,10 @@ export function rasterizeText(element, baselineElement, hitSlop = 0) {
   context.scale(scale, scale);
   // Computed CSS keywords can be lowercase; canvas enums are case-sensitive.
   context.textRendering = TEXT_RENDERING[style.textRendering.toLowerCase()] || 'auto';
-  context.fontKerning = style.fontKerning;
+  context.fontKerning = FONT_KERNING[style.fontKerning] || 'auto';
   const family = style.fontFamily.split(',')[0].replace(/["']/g, '').trim();
-  const regularLoaded = [...document.fonts].some(face =>
-    face.family.replace(/["']/g, '') === family && face.status === 'loaded'
+  const regularLoaded = [...document.fonts].some(
+    face => face.family.replace(/["']/g, '') === family && face.status === 'loaded',
   );
   // This site loads regular Forum/Roboto with synthesis disabled. The fallback
   // can have a real bold face, so retain its weight until the web font loads.

@@ -4,8 +4,14 @@ import { inkBounds } from './inkBounds.js';
 // Measure visible ink rather than the taller inline text box. Raster bounds
 // also avoid WebKit's canvas text metrics including the glyph's side bearings.
 export function measureLetter(element) {
-  const { data, width: sourceWidth, height: sourceHeight, scale, offsetX, offsetY } =
-    rasterizeText(element, element.querySelector('[data-baseline]'));
+  const {
+    data,
+    width: sourceWidth,
+    height: sourceHeight,
+    scale,
+    offsetX,
+    offsetY,
+  } = rasterizeText(element, element.querySelector('[data-baseline]'));
   const ink = inkBounds({ data, width: sourceWidth, height: sourceHeight });
   if (!ink) return null;
   const { left, right, top, bottom } = ink;
@@ -16,7 +22,7 @@ export function measureLetter(element) {
   // The raster origin can sit between physical pixels (e.g. at 1.5×). Snap it
   // so the bitmap and the slice cuts below land on whole device rows.
   const y = Math.round((offsetY + top / scale) * scale) / scale;
-  const cut = (fraction) => Math.round(height * fraction * scale) / scale;
+  const cut = fraction => Math.round(height * fraction * scale) / scale;
   const glyph = halfFilledGlyph(data, sourceWidth, left, top, right, bottom);
   return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), glyph };
 }

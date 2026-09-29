@@ -1,6 +1,14 @@
 import { expect, test } from '@playwright/test';
 import {
-  capture, centre, edgeContact, hideBars, inkBox, link, load, scanHitAreas, wordInk,
+  capture,
+  centre,
+  edgeContact,
+  hideBars,
+  inkBox,
+  link,
+  load,
+  scanHitAreas,
+  wordInk,
 } from './helpers.js';
 
 const desktop = { width: 1440, height: 900 };
@@ -74,7 +82,8 @@ test.describe('theme toggle glyph at DPR 1.5', () => {
       for (let y = top; y < bottom; y += 1) if (image.ink(x, y) >= 200) dark.push(y);
       // A column through the filled half is dark from the outline's top to its bottom.
       if (dark.length < (bottom - top) / 2) continue;
-      const first = dark[0], last = dark.at(-1);
+      const first = dark[0],
+        last = dark.at(-1);
       if (image.ink(x, Math.round((first + last) / 2)) < 250) continue;
       filledColumns += 1;
       for (let y = first + 2; y <= last - 2; y += 1) {
@@ -93,15 +102,23 @@ test('heading does not jump between widths 969 and 970', async ({ page }) => {
     const menuTop = (await link(page, 'github').boundingBox()).y;
     const box = inkBox(await capture(page), { x: 0, y: 0, width, height: menuTop });
     // Measure from the right edge, which the heading is aligned to.
-    return { right: width - box.right, top: box.top, width: box.right - box.left, height: box.bottom - box.top };
+    return {
+      right: width - box.right,
+      top: box.top,
+      width: box.right - box.left,
+      height: box.bottom - box.top,
+    };
   };
   const narrow = await headingInk(969);
   const wide = await headingInk(970);
-  for (const key of Object.keys(narrow)) expect(Math.abs(wide[key] - narrow[key]), key).toBeLessThanOrEqual(1);
+  for (const key of Object.keys(narrow))
+    expect(Math.abs(wide[key] - narrow[key]), key).toBeLessThanOrEqual(1);
 });
 
 for (const [layout, viewport] of Object.entries({ desktop, portrait })) {
-  test(`link hit areas are solid, separate and cover their own word (${layout})`, async ({ page }) => {
+  test(`link hit areas are solid, separate and cover their own word (${layout})`, async ({
+    page,
+  }) => {
     await page.setViewportSize(viewport);
     await load(page);
     await hideBars(page);
@@ -129,7 +146,7 @@ for (const [layout, viewport] of Object.entries({ desktop, portrait })) {
     }
 
     // Targets stay put while a link is pressed.
-    await page.mouse.move(...await centre(link(page, 'resume')));
+    await page.mouse.move(...(await centre(link(page, 'resume'))));
     await page.mouse.down();
     await page.waitForTimeout(200);
     expect(await scanHitAreas(page)).toEqual(areas);

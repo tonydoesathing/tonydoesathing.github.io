@@ -1,0 +1,4 @@
+package-lock.json
+# Hand-wrapped prose and tables read better unformatted.
+*.md
+tests/e2e/*-snapshots/

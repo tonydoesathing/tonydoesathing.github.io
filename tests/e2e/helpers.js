@@ -12,14 +12,23 @@ export async function settle(page) {
   await page.evaluate(() => document.fonts.ready);
   await expect(page.getByRole('button')).toBeVisible();
   let previous;
-  await expect.poll(async () => {
-    const current = await page.evaluate(() => JSON.stringify(
-      [...document.querySelectorAll('h1, a, button')].map(element => element.getBoundingClientRect()),
-    ));
-    const stable = current === previous;
-    previous = current;
-    return stable;
-  }, { intervals: [100] }).toBe(true);
+  await expect
+    .poll(
+      async () => {
+        const current = await page.evaluate(() =>
+          JSON.stringify(
+            [...document.querySelectorAll('h1, a, button')].map(element =>
+              element.getBoundingClientRect(),
+            ),
+          ),
+        );
+        const stable = current === previous;
+        previous = current;
+        return stable;
+      },
+      { intervals: [100] },
+    )
+    .toBe(true);
 }
 
 // The three background bars are the only animations running at rest. Freezing
@@ -48,8 +57,14 @@ export async function centre(locator) {
 // Returns a function that shows them again.
 export async function isolate(page, name) {
   const others = await page.getByRole('link').filter({ hasNotText: name }).elementHandles();
-  const setVisibility = value => Promise.all(others.map(other => other.evaluate(
-    (element, value) => { element.style.visibility = value; }, value)));
+  const setVisibility = value =>
+    Promise.all(
+      others.map(other =>
+        other.evaluate((element, value) => {
+          element.style.visibility = value;
+        }, value),
+      ),
+    );
   await setVisibility('hidden');
   return () => setVisibility('');
 }
@@ -58,7 +73,12 @@ export async function isolate(page, name) {
 export async function wordInk(page, name) {
   const restore = await isolate(page, name);
   const box = await link(page, name).boundingBox();
-  const ink = inkBox(await capture(page), { x: box.x - 20, y: box.y - 40, width: box.width + 40, height: box.height + 80 });
+  const ink = inkBox(await capture(page), {
+    x: box.x - 20,
+    y: box.y - 40,
+    width: box.width + 40,
+    height: box.height + 80,
+  });
   await restore();
   return ink;
 }
@@ -89,7 +109,10 @@ function deviceRange(image, { x, y, width, height }) {
 // Bounding box, in CSS pixels, of the dark pixels inside a CSS rectangle.
 export function inkBox(image, rect, threshold = 128) {
   const range = deviceRange(image, rect);
-  let left = Infinity, top = Infinity, right = -Infinity, bottom = -Infinity;
+  let left = Infinity,
+    top = Infinity,
+    right = -Infinity,
+    bottom = -Infinity;
   for (let y = range.top; y < range.bottom; y += 1) {
     for (let x = range.left; x < range.right; x += 1) {
       if (image.ink(x, y) < threshold) continue;
@@ -145,7 +168,9 @@ export async function scanHitAreas(page) {
         right: Math.max(...own.map(hit => hit.x)) + 1,
         bottom: Math.max(...own.map(hit => hit.y)) + 1,
       };
-      const inside = hits.filter(({ x, y }) => x >= box.left && x < box.right && y >= box.top && y < box.bottom);
+      const inside = hits.filter(
+        ({ x, y }) => x >= box.left && x < box.right && y >= box.top && y < box.bottom,
+      );
       const holes = (box.right - box.left) * (box.bottom - box.top) - inside.length;
       return { name: link.textContent, box, holes };
     });
@@ -158,26 +183,33 @@ export async function recordMotion(locator) {
   await locator.evaluate(link => {
     const samples = [];
     const frame = () => {
-      const shape = link.getAnimations({ subtree: true }).map(animation => animation.effect.target)[0];
+      const shape = link
+        .getAnimations({ subtree: true })
+        .map(animation => animation.effect.target)[0];
       const box = shape?.getBoundingClientRect();
-      samples.push(box && box.width > 0.5 && box.height > 0.5
-        ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
-        : null);
+      samples.push(
+        box && box.width > 0.5 && box.height > 0.5
+          ? { left: box.left, top: box.top, right: box.right, bottom: box.bottom }
+          : null,
+      );
       link.motionFrame = requestAnimationFrame(frame);
     };
     link.motionSamples = samples;
     frame();
   });
-  return () => locator.evaluate(link => {
-    cancelAnimationFrame(link.motionFrame);
-    return link.motionSamples;
-  });
+  return () =>
+    locator.evaluate(link => {
+      cancelAnimationFrame(link.motionFrame);
+      return link.motionSamples;
+    });
 }
 
 // Collects console errors and uncaught exceptions for the page's lifetime.
 export function watchErrors(page) {
   const errors = [];
-  page.on('console', message => { if (message.type() === 'error') errors.push(message.text()); });
+  page.on('console', message => {
+    if (message.type() === 'error') errors.push(message.text());
+  });
   page.on('pageerror', error => errors.push(error.message));
   return errors;
 }
@@ -188,7 +220,11 @@ export function changedAbove(before, after, box, band = 8) {
   const s = after.scale;
   let changed = 0;
   for (let y = Math.floor((box.y - band) * s); y < box.y * s; y += 1) {
-    for (let x = Math.max(0, Math.floor(box.x * s)); x < Math.min(after.width, (box.x + box.width) * s); x += 1) {
+    for (
+      let x = Math.max(0, Math.floor(box.x * s));
+      x < Math.min(after.width, (box.x + box.width) * s);
+      x += 1
+    ) {
       if (Math.abs(after.ink(x, y) - before.ink(x, y)) > 64) changed += 1;
     }
   }
@@ -197,7 +233,11 @@ export function changedAbove(before, after, box, band = 8) {
 
 // Presses Tab until the locator has focus, so tests don't depend on tab order.
 export async function tabTo(page, locator) {
-  for (let i = 0; i < 10 && !(await locator.evaluate(element => element === document.activeElement)); i += 1) {
+  for (
+    let i = 0;
+    i < 10 && !(await locator.evaluate(element => element === document.activeElement));
+    i += 1
+  ) {
     await page.keyboard.press('Tab');
   }
   await expect(locator).toBeFocused();

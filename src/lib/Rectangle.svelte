@@ -14,6 +14,7 @@
   let bar;
   let duration;
   let distance;
+  let delay;
   let viewportWidth;
   const random = (min, max) => min + Math.random() * (max - min);
 
@@ -32,7 +33,8 @@
   function updateDuration() {
     viewportWidth = window.innerWidth;
     distance = viewportWidth * (1 + pass.width / 100);
-    duration = distance / pass.speed * 1000;
+    duration = (distance / pass.speed) * 1000;
+    delay = -pass.start * duration;
   }
 
   async function resize() {
@@ -59,7 +61,7 @@
       bind:this={bar}
       class="bar"
       aria-hidden="true"
-      style="--width: {pass.width}vw; --height: {pass.height}vh; --y: {pass.y}vh; --duration: {duration}ms; --distance: {distance}px; --delay: {-pass.start * duration}ms"
+      style="--width: {pass.width}vw; --height: {pass.height}vh; --y: {pass.y}vh; --duration: {duration}ms; --distance: {distance}px; --delay: {delay}ms"
       on:animationend={reset}
     ></div>
   {/key}
@@ -79,11 +81,17 @@
   }
 
   @media (prefers-reduced-motion: no-preference) {
-    .bar { animation: drift var(--duration) linear var(--delay) both; }
+    .bar {
+      animation: drift var(--duration) linear var(--delay) both;
+    }
   }
 
   @keyframes drift {
-    from { transform: translateX(0); }
-    to { transform: translateX(calc(-1 * var(--distance))); }
+    from {
+      transform: translateX(0);
+    }
+    to {
+      transform: translateX(calc(-1 * var(--distance)));
+    }
   }
 </style>

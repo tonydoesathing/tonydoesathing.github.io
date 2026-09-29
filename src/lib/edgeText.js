@@ -33,7 +33,12 @@ export function paintEdgeText(element, baseline, overlay, side) {
   context.putImageData(image, 0, 0);
   const rect = element.getBoundingClientRect();
   const width = canvas.width / raster.scale;
-  const x = side === 'left' ? 0 : side === 'right' ? viewportInkRight() - width : raster.offsetX + ink.left / raster.scale;
+  const x =
+    side === 'left'
+      ? 0
+      : side === 'right'
+        ? viewportInkRight() - width
+        : raster.offsetX + ink.left / raster.scale;
   const y = raster.offsetY + ink.top / raster.scale;
   overlay.style.cssText = `position:absolute;pointer-events:none;left:${x - rect.left}px;top:${y - rect.top}px;width:${width}px;height:${canvas.height / raster.scale}px;background:url("${canvas.toDataURL()}") 0 0 / 100% 100% no-repeat`;
   element.style.color = 'transparent';

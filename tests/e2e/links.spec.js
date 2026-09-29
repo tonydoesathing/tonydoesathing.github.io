@@ -1,6 +1,16 @@
 import { expect, test } from '@playwright/test';
 import {
-  capture, centre, changedAbove, hideBars, inkBox, isolate, link, load, recordMotion, tabTo, wordInk,
+  capture,
+  centre,
+  changedAbove,
+  hideBars,
+  inkBox,
+  isolate,
+  link,
+  load,
+  recordMotion,
+  tabTo,
+  wordInk,
 } from './helpers.js';
 
 const resumeUrl = '**/TonyMastromarinoResume.pdf';
@@ -46,7 +56,10 @@ test.describe('navigation', () => {
     await newTab;
   });
 
-  for (const [name, url] of [['github', 'https://github.com/tonydoesathing'], ['resume', /\/TonyMastromarinoResume\.pdf$/]]) {
+  for (const [name, url] of [
+    ['github', 'https://github.com/tonydoesathing'],
+    ['resume', /\/TonyMastromarinoResume\.pdf$/],
+  ]) {
     test(`${name} navigates`, async ({ page }) => {
       await page.route(url, route => route.fulfill({ contentType: 'text/html', body: name }));
       await load(page);
@@ -56,7 +69,9 @@ test.describe('navigation', () => {
   }
 
   test('keyboard activation and a visible focus ring', async ({ page }) => {
-    await page.route('https://github.com/**', route => route.fulfill({ contentType: 'text/html', body: 'github' }));
+    await page.route('https://github.com/**', route =>
+      route.fulfill({ contentType: 'text/html', body: 'github' }),
+    );
     await load(page);
     await hideBars(page);
     const github = link(page, 'github');
@@ -81,7 +96,7 @@ test.describe('link motion', () => {
     const resume = link(page, 'resume');
     const ink = await wordInk(page, 'resume');
     const stop = await recordMotion(resume);
-    await page.mouse.move(...await centre(resume));
+    await page.mouse.move(...(await centre(resume)));
     await page.waitForTimeout(400);
     await page.mouse.move(1, 1);
     await page.waitForTimeout(500);
@@ -112,7 +127,7 @@ test.describe('link motion', () => {
   test('press grows the underline upward and release collapses it upward', async ({ page }) => {
     const resume = link(page, 'resume');
     const ink = await wordInk(page, 'resume');
-    await page.mouse.move(...await centre(resume));
+    await page.mouse.move(...(await centre(resume)));
     await page.waitForTimeout(400);
     const stop = await recordMotion(resume);
     await page.mouse.down();
@@ -139,15 +154,17 @@ test.describe('link motion', () => {
     }
     expect(samples.at(-1)).toBeNull();
     // Balanced: as much space above the word as the underline leaves below it.
-    expect(Math.abs((ink.top - box.top) - (box.bottom - ink.bottom))).toBeLessThanOrEqual(1.5);
+    expect(Math.abs(ink.top - box.top - (box.bottom - ink.bottom))).toBeLessThanOrEqual(1.5);
   });
 
-  test('double-click grows and shrinks twice, starting again from the underline', async ({ page }) => {
+  test('double-click grows and shrinks twice, starting again from the underline', async ({
+    page,
+  }) => {
     const resume = link(page, 'resume');
-    await page.mouse.move(...await centre(resume));
+    await page.mouse.move(...(await centre(resume)));
     await page.waitForTimeout(400);
     const stop = await recordMotion(resume);
-    await page.mouse.dblclick(...await centre(resume));
+    await page.mouse.dblclick(...(await centre(resume)));
     await page.waitForTimeout(1300);
     const samples = await stop();
 
@@ -177,10 +194,11 @@ test.describe('reduced motion', () => {
     await isolate(page, 'resume');
     const wordWidth = ink.right - ink.left;
     const below = { x: ink.left, y: ink.bottom, width: wordWidth, height: 20 };
-    const animating = () => resume.evaluate(element => element.getAnimations({ subtree: true }).length);
+    const animating = () =>
+      resume.evaluate(element => element.getAnimations({ subtree: true }).length);
 
     expect(inkBox(await capture(page), below)).toBeNull();
-    await page.mouse.move(...await centre(resume));
+    await page.mouse.move(...(await centre(resume)));
     // Fully drawn in the first frame.
     const underline = inkBox(await capture(page), below);
     expect(underline.right - underline.left).toBeGreaterThan(wordWidth * 0.9);
@@ -188,7 +206,12 @@ test.describe('reduced motion', () => {
 
     // The box inverts the word, so its top row is dark from end to end.
     await page.mouse.down();
-    const box = inkBox(await capture(page), { x: ink.left, y: ink.top - 20, width: wordWidth, height: 20 });
+    const box = inkBox(await capture(page), {
+      x: ink.left,
+      y: ink.top - 20,
+      width: wordWidth,
+      height: 20,
+    });
     expect(box.right - box.left).toBeGreaterThan(wordWidth * 0.9);
     expect(await animating()).toBe(0);
 

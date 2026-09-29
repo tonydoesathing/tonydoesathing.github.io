@@ -60,7 +60,7 @@
   let dark = document.documentElement.dataset.theme === 'dark';
   let preference = null;
   const systemTheme = window.matchMedia('(prefers-color-scheme: dark)');
-  const validPreference = value => value === 'light' || value === 'dark' ? value : null;
+  const validPreference = value => (value === 'light' || value === 'dark' ? value : null);
 
   function applyTheme() {
     dark = preference ? preference === 'dark' : systemTheme.matches;
@@ -68,13 +68,23 @@
   }
 
   onMount(() => {
-    try { preference = validPreference(localStorage.getItem('theme')); } catch {}
+    try {
+      preference = validPreference(localStorage.getItem('theme'));
+    } catch {
+      // Without storage, follow the system theme.
+    }
     applyTheme();
-    const onSystemChange = () => { if (!preference) applyTheme(); };
+    const onSystemChange = () => {
+      if (!preference) applyTheme();
+    };
     const onStorageChange = event => {
       if (event.key !== 'theme' && event.key !== null) return;
       // Ignore unrelated sessionStorage events. A cleared setting resumes auto.
-      try { if (event.storageArea !== localStorage) return; } catch { return; }
+      try {
+        if (event.storageArea !== localStorage) return;
+      } catch {
+        return;
+      }
       preference = validPreference(event.newValue);
       applyTheme();
     };
@@ -164,8 +174,15 @@
     cursor: pointer;
     -webkit-tap-highlight-color: transparent;
   }
-  button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
-  .art { position: absolute; inset: 0; pointer-events: none; }
+  button:focus-visible {
+    outline: 1px solid currentColor;
+    outline-offset: 4px;
+  }
+  .art {
+    position: absolute;
+    inset: 0;
+    pointer-events: none;
+  }
   .glyph {
     position: absolute;
     inset: 0;
@@ -174,14 +191,29 @@
     background-repeat: no-repeat;
   }
   /* Cuts are snapped to device pixels to keep the three pieces seamless. */
-  .top { clip-path: inset(0 0 calc(100% - var(--cut-top)) 0); }
-  .middle { clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0); }
-  .bottom { clip-path: inset(var(--cut-bottom) 0 0 0); }
+  .top {
+    clip-path: inset(0 0 calc(100% - var(--cut-top)) 0);
+  }
+  .middle {
+    clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0);
+  }
+  .bottom {
+    clip-path: inset(var(--cut-bottom) 0 0 0);
+  }
   /* Motion is opt-in, so reduced motion keeps the slices at rest. */
   @media (prefers-reduced-motion: no-preference) {
-    .middle { transition: transform 400ms linear; }
-    .enter .middle { transform: translateX(-4px); }
-    .fire .middle { transform: translateX(8px); }
-    .fire .middle, .recover .middle { transition-duration: 60ms; }
+    .middle {
+      transition: transform 400ms linear;
+    }
+    .enter .middle {
+      transform: translateX(-4px);
+    }
+    .fire .middle {
+      transform: translateX(8px);
+    }
+    .fire .middle,
+    .recover .middle {
+      transition-duration: 60ms;
+    }
   }
 </style>

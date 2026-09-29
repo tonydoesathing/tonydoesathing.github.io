@@ -14,16 +14,29 @@ describe('inkBounds', () => {
   });
 
   it('is exclusive on the right and bottom', () => {
-    expect(inkBounds(raster(4, 3, [[2, 1, 255]]))).toEqual({ left: 2, top: 1, right: 3, bottom: 2 });
+    expect(inkBounds(raster(4, 3, [[2, 1, 255]]))).toEqual({
+      left: 2,
+      top: 1,
+      right: 3,
+      bottom: 2,
+    });
   });
 
   it('encloses every inked pixel', () => {
-    const pixels = [[1, 4, 255], [5, 0, 10], [3, 2, 1]];
+    const pixels = [
+      [1, 4, 255],
+      [5, 0, 10],
+      [3, 2, 1],
+    ];
     expect(inkBounds(raster(8, 6, pixels))).toEqual({ left: 1, top: 0, right: 6, bottom: 5 });
   });
 
   it('ignores pixels fainter than the threshold', () => {
-    const pixels = [[0, 0, 253], [2, 1, 254], [3, 2, 255]];
+    const pixels = [
+      [0, 0, 253],
+      [2, 1, 254],
+      [3, 2, 255],
+    ];
     expect(inkBounds(raster(4, 3, pixels), 254)).toEqual({ left: 2, top: 1, right: 4, bottom: 3 });
     expect(inkBounds(raster(4, 3, [[0, 0, 100]]), 254)).toBeNull();
   });

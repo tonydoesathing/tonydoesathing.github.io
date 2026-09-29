@@ -6,9 +6,14 @@ const saved = page => page.evaluate(() => localStorage.getItem('theme'));
 
 async function expectTheme(page, theme) {
   const root = page.locator('html');
-  await expect(root).toHaveCSS('background-color', theme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)');
+  await expect(root).toHaveCSS(
+    'background-color',
+    theme === 'dark' ? 'rgb(0, 0, 0)' : 'rgb(255, 255, 255)',
+  );
   await expect(root).toHaveCSS('color-scheme', theme);
-  await expect(toggle(page)).toHaveAccessibleName(theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode');
+  await expect(toggle(page)).toHaveAccessibleName(
+    theme === 'dark' ? 'Switch to light mode' : 'Switch to dark mode',
+  );
 }
 
 for (const system of ['light', 'dark']) {
@@ -41,7 +46,9 @@ test('a choice survives reloading', async ({ page }) => {
   await expectTheme(page, 'dark');
 });
 
-test('a choice syncs across tabs, and clearing it restores the system theme', async ({ context }) => {
+test('a choice syncs across tabs, and clearing it restores the system theme', async ({
+  context,
+}) => {
   const [first, second] = [await context.newPage(), await context.newPage()];
   await load(first);
   await load(second);
@@ -65,7 +72,9 @@ test('still toggles when storage is blocked', async ({ page }) => {
   const errors = watchErrors(page);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
-      get() { throw new DOMException('Storage is blocked', 'SecurityError'); },
+      get() {
+        throw new DOMException('Storage is blocked', 'SecurityError');
+      },
     });
   });
   await load(page);

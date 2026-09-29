@@ -4,9 +4,19 @@ This is a landing page for my GitHub, built with Svelte and Vite and published t
 
 ## Setup and development
 
-Make sure you have NodeJS and NPM installed, then run `npm install`.
+Install Node 22 (see `.nvmrc`), then run `npm install`. Optionally, use the dev container.
 
-Optionally, use the dev container.
+| Script | Purpose |
+| --- | --- |
+| `npm run dev` | Vite dev server with hot reload. |
+| `npm run build` | Production build to `dist/`. |
+| `npm run preview` | Serve the built `dist/` locally. |
+| `npm run check` | Type-check JS and Svelte with `svelte-check`. |
+| `npm run lint` | ESLint, then Prettier in check mode. |
+| `npm run format` | Rewrite files with Prettier. |
+| `npm test` | Unit tests, then end-to-end tests (see Regression checks). |
+
+GitHub Actions (`.github/workflows/deploy.yml`) checks, tests, builds and deploys every push to `master`. In the repository's Pages settings, the source must be set to **GitHub Actions**.
 
 
 ## Requirements and design decisions
@@ -173,12 +183,10 @@ These are historical context, not additional requirements to implement:
 
 Run `npm test`, or `npm run test:unit` and `npm run test:e2e` separately. Vitest covers pure helpers in `tests/unit`. Playwright runs `tests/e2e` in Chromium, Firefox and WebKit against its own Vite server on port 5174; outside the dev container, install its browsers first with `npx playwright install`.
 
-The end-to-end suite checks edge contact at DPR 1, 1.5 and 2, toggle seams, 969/970 heading spacing, hit areas, navigation, link motion, reduced motion, theme selection and persistence, accessibility and keyboard use, console errors, and bar progress across resizes. It also compares Chromium screenshots, with the bars hidden, against the Linux baselines in `tests/e2e/visual.spec.js-snapshots`, so run it in the dev container. After an intended visual change, review the diff and then run `npx playwright test visual --update-snapshots`.
+The end-to-end suite checks edge contact at DPR 1, 1.5 and 2, toggle seams, 969/970 heading spacing, hit areas, navigation, link motion, reduced motion, theme selection and persistence, accessibility and keyboard use, console errors, and bar progress across resizes. It also compares Chromium screenshots, with the bars hidden, against the Linux baselines in `tests/e2e/visual.spec.js-snapshots`, so run it in the dev container. After an intended visual change, review the diff and then run `npx playwright test visual --update-snapshots`. CI skips these `@visual` tests (`--grep-invert @visual`), because the baselines are platform-specific.
 
 These still need a person:
 
 - Real touch devices: tap, press and hold, and dragging off a link.
 - Moving the window between displays with different pixel densities.
 - Real macOS and Windows font rendering, including Safari.
-
-For site-code changes, also build and keep the published `docs/` output current.
