@@ -2,12 +2,14 @@
   import Menu from './lib/Menu.svelte';
   import Rectangle from './lib/Rectangle.svelte';
   import ThemeToggle from './lib/ThemeToggle.svelte';
+
+  let lastLetter;
 </script>
 
 <main>
-  <h1>Tony Mastromarino</h1>
+  <h1>Tony Mastromarin<span bind:this={lastLetter}>o<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
   <Menu />
-  <ThemeToggle />
+  <ThemeToggle target={lastLetter} />
 
   <div class="decoration" aria-hidden="true">
     <Rectangle />
@@ -17,6 +19,13 @@
 </main>
 
 <style>
+  .baseline {
+    display: inline-block;
+    width: 0;
+    height: 0;
+    vertical-align: baseline;
+  }
+
   .decoration {
     position: fixed;
     inset: 0;

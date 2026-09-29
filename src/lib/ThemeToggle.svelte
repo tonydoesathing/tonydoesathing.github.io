@@ -1,4 +1,37 @@
 <script>
+  import { onMount, tick } from 'svelte';
+  import { measureLetter } from './measureLetter';
+
+  export let target;
+  let bounds;
+
+  onMount(() => {
+    let disposed = false;
+    let observer;
+    const measure = () => {
+      if (disposed || !target) return;
+      bounds = measureLetter(target);
+      target.style.color = 'transparent';
+    };
+
+    tick().then(() => {
+      if (disposed) return;
+      measure();
+      observer = new ResizeObserver(measure);
+      observer.observe(target.parentElement);
+    });
+    document.fonts.ready.then(measure);
+    document.fonts.addEventListener('loadingdone', measure);
+    window.addEventListener('resize', measure);
+    return () => {
+      disposed = true;
+      observer?.disconnect();
+      document.fonts.removeEventListener('loadingdone', measure);
+      window.removeEventListener('resize', measure);
+      if (target) target.style.removeProperty('color');
+    };
+  });
+
   let dark = document.documentElement.dataset.theme === 'dark';
   let motion = '';
   let pressed = false;
@@ -40,7 +73,9 @@
 
 </script>
 
+{#if bounds}
 <button
+  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --stroke: {bounds.stroke}px"
   type="button"
   aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
   on:click={toggle}
@@ -60,15 +95,12 @@
     <span class="glyph bottom"></span>
   </span>
 </button>
+{/if}
 
 <style>
   button {
     position: fixed;
-    right: max(1rem, env(safe-area-inset-right));
-    bottom: max(1rem, env(safe-area-inset-bottom));
     z-index: 10;
-    width: 44px;
-    height: 44px;
     padding: 0;
     border: 0;
     background: transparent;
@@ -78,25 +110,23 @@
     -webkit-tap-highlight-color: transparent;
   }
   button:focus-visible { outline: 1px solid currentColor; outline-offset: 4px; }
-  .art { position: absolute; inset: 0; overflow: hidden; pointer-events: none; }
+  .art { position: absolute; inset: 0; pointer-events: none; }
   .glyph {
     position: absolute;
-    left: 11px;
-    top: 11px;
-    width: 20px;
-    height: 20px;
-    border: 1px solid currentColor;
+    inset: 0;
+    box-sizing: border-box;
+    border: var(--stroke) solid currentColor;
     border-radius: 50%;
     background: linear-gradient(90deg, currentColor 50%, transparent 50%);
   }
-  /* The glyph is 22px including its border; whole-pixel cuts avoid seams. */
-  .top { clip-path: inset(0 0 14px 0); }
+  /* Cuts are snapped to device pixels to keep the three pieces seamless. */
+  .top { clip-path: inset(0 0 calc(100% - var(--cut-top)) 0); }
   .middle {
-    clip-path: inset(8px 0 8px 0);
+    clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0);
     transform: translateX(0);
     transition: transform 400ms linear;
   }
-  .bottom { clip-path: inset(14px 0 0 0); }
+  .bottom { clip-path: inset(var(--cut-bottom) 0 0 0); }
   .enter .middle { transform: translateX(-4px); }
   .fire .middle { transform: translateX(8px); }
   .fire .middle, .recover .middle { transition-duration: 160ms; }
