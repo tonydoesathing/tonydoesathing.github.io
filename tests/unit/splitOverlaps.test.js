@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { splitOverlaps } from '../../src/lib/wordHitArea.js';
+import { splitOverlaps } from '../../src/lib/fitWords.js';
 
 const box = (top, bottom) => ({ left: 0, right: 10, top, bottom });
 

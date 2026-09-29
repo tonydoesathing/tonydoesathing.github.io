@@ -1,14 +1,23 @@
-import { rasterizeText, viewportBox } from './rasterizeText.js';
+import { viewportBox } from './rasterizeText.js';
 import { ALPHA, inkBounds } from './inkBounds.js';
 import { alphaMask } from './alphaMask.js';
 import { viewportRightEdge } from './pixels.js';
 
-// Use the same font raster for measurement and display. Measuring canvas ink
-// but displaying HTML text can differ by a few pixels between browser engines.
-export function paintEdgeText(element, baseline, overlay, side) {
-  const raster = rasterizeText(element, baseline);
+/** @typedef {import('./rasterizeText.js').Raster} Raster */
+
+/**
+ * A text raster's visible ink, cropped, as an image to show in place of the
+ * HTML text, with its viewport box in CSS pixels. Measuring canvas ink but
+ * displaying HTML text can differ by a few pixels between browser engines, so
+ * the same raster serves both. `side` pins the ink to that viewport edge.
+ *
+ * @param {Raster} raster
+ * @param {'left' | 'right'} [side]
+ * @returns {{ left: number, top: number, width: number, height: number, image: string } | null}
+ */
+export function edgeInk(raster, side) {
   const ink = inkBounds(raster);
-  if (!ink) return false;
+  if (!ink) return null;
   if (side === 'left') {
     // A faint antialiased fringe can look like a gap even at x=0. Align the
     // solid stroke to the edge, cropping only that outer fringe.
@@ -16,12 +25,27 @@ export function paintEdgeText(element, baseline, overlay, side) {
     if (solidInk) ink.left = solidInk.left;
   }
   const canvas = alphaMask(raster, ink);
-  const rect = element.getBoundingClientRect();
   const { left, top } = viewportBox(raster, ink);
   const width = canvas.width / raster.scale;
   const height = canvas.height / raster.scale;
   const x = side === 'left' ? 0 : side === 'right' ? viewportRightEdge() - width : left;
-  overlay.style.cssText = `position:absolute;pointer-events:none;left:${x - rect.left}px;top:${top - rect.top}px;width:${width}px;height:${height}px;background:url("${canvas.toDataURL()}") 0 0 / 100% 100% no-repeat`;
-  element.style.color = 'transparent';
-  return true;
+  return { left: x, top, width, height, image: canvas.toDataURL() };
+}
+
+/**
+ * Shows an `edgeInk` image in an absolutely positioned overlay whose
+ * containing block has its top left corner at `origin` in the viewport.
+ *
+ * @param {HTMLElement} overlay
+ * @param {NonNullable<ReturnType<typeof edgeInk>>} ink
+ * @param {{ left: number, top: number }} origin
+ */
+export function showInk(overlay, { left, top, width, height, image }, origin) {
+  Object.assign(overlay.style, {
+    left: `${left - origin.left}px`,
+    top: `${top - origin.top}px`,
+    width: `${width}px`,
+    height: `${height}px`,
+    backgroundImage: `url("${image}")`,
+  });
 }

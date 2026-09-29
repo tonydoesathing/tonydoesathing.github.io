@@ -1,0 +1,55 @@
+import { rasterizeText, viewportBox } from '../lib/rasterizeText.js';
+import { ALPHA, inkBounds } from '../lib/inkBounds.js';
+import { alphaMask, alphaAt } from '../lib/alphaMask.js';
+import { snap, viewportRightEdge } from '../lib/pixels.js';
+
+/**
+ * The theme toggle's artwork, drawn from the letter it replaces: the letter's
+ * visible ink, pinned to the right viewport edge, with half its interior
+ * filled, and the device-pixel rows where its middle slice is cut. Null if
+ * the letter has no ink to measure. Measures ink rather than the taller inline
+ * text box; raster bounds also avoid WebKit's canvas text metrics including
+ * the glyph's side bearings.
+ *
+ * @param {{ text: Text, baselineY: number }} letter
+ */
+export function themeGlyph(letter) {
+  const raster = rasterizeText(letter);
+  const ink = inkBounds(raster);
+  if (!ink) return null;
+  const { scale } = raster;
+  const width = (ink.right - ink.left) / scale;
+  const height = (ink.bottom - ink.top) / scale;
+  // The cropped bitmap has no side bearing: pin its last pixel directly. Both
+  // terms, like the raster origin, are whole device pixels, so need no snap.
+  const x = viewportRightEdge() - width;
+  const { top: y } = viewportBox(raster, ink);
+  // Cut on device rows so the three slices meet without seams.
+  const cut = fraction => snap(height * fraction, scale);
+  const image = halfFilledGlyph(raster, ink).toDataURL();
+  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), image };
+}
+
+// Reuse the rasterized font outline, filling only the space between the two
+// strokes of the o. Its asymmetric contour and varying stroke weight survive.
+function halfFilledGlyph(raster, ink) {
+  const width = ink.right - ink.left;
+  // Per row, the first and last columns inside a stroke.
+  const strokes = [];
+  for (let y = ink.top; y < ink.bottom; y += 1) {
+    let first = width;
+    let last = -1;
+    for (let x = 0; x < width; x += 1) {
+      if (alphaAt(raster, x + ink.left, y) < ALPHA.STROKE) continue;
+      first = Math.min(first, x);
+      last = x;
+    }
+    strokes.push({ first, last });
+  }
+  return alphaMask(raster, ink, (alpha, x, y) => {
+    const { first, last } = strokes[y];
+    if (x <= first || x >= last) return alpha;
+    const leftCoverage = Math.min(1, Math.max(0, width / 2 - x));
+    return alpha + (255 - alpha) * leftCoverage;
+  });
+}

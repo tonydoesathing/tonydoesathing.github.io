@@ -3,16 +3,18 @@
 
   // [min, max] ranges; each pass picks uniformly within them. Speed is in
   // CSS pixels per second, independent of the viewport and bar width.
-  export let widthVw = [50, 150];
-  export let heightVh = [100 / 24, 100 / 8];
-  export let topVh = [100 / 3, 100];
-  export let speedPxPerSecond = [24, 36];
+  let {
+    widthVw = [50, 150],
+    heightVh = [100 / 24, 100 / 8],
+    topVh = [100 / 3, 100],
+    speedPxPerSecond = [24, 36],
+  } = $props();
 
-  let pass;
-  let bar;
-  let duration;
-  let distance;
-  let delay;
+  let pass = $state.raw();
+  let duration = $state();
+  let distance = $state();
+  let delay = $state();
+  let bar = $state();
   let viewportWidth;
   /** @param {number[]} range */
   const random = ([min, max]) => min + Math.random() * (max - min);
@@ -51,7 +53,7 @@
   onMount(reset);
 </script>
 
-<svelte:window on:resize={resize} />
+<svelte:window onresize={resize} />
 
 <!-- Negative delay places the first pass partway through its CSS animation. -->
 {#if pass}
@@ -60,7 +62,7 @@
       bind:this={bar}
       class="bar"
       style="--width: {pass.width}vw; --height: {pass.height}vh; --y: {pass.y}vh; --duration: {duration}ms; --distance: {distance}px; --delay: {delay}ms"
-      on:animationend={reset}
+      onanimationend={reset}
     ></div>
   {/key}
 {/if}

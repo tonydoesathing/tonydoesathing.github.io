@@ -1,40 +1,13 @@
 <script>
+  /** @import { themeGlyph } from './themeGlyph.js' */
   import { onMount } from 'svelte';
-  import { measureLetter } from './measureLetter.js';
-  import { alignHeading } from './alignHeading.js';
-  import { onLayoutChange } from './onLayoutChange.js';
-  import { viewportRightEdge } from './pixels.js';
-  import { syncTheme, theme } from './theme.svelte.js';
+  import { syncTheme, theme } from '../lib/theme.svelte.js';
 
-  let { target } = $props();
-  let bounds = $state();
+  // The artwork, positioned over the letter it replaces; null hides the button.
+  /** @type {{ glyph: ReturnType<typeof themeGlyph> }} */
+  let { glyph } = $props();
 
   onMount(syncTheme);
-
-  $effect(() => {
-    if (!target) return;
-    const stopMeasuring = onLayoutChange(
-      () => {
-        alignHeading(target);
-        const letter = measureLetter(target);
-        // The cropped bitmap has no side bearing: pin its last pixel directly.
-        // Both terms are whole device pixels, so x needs no extra snap.
-        bounds = letter && { ...letter, x: viewportRightEdge() - letter.width };
-        if (bounds) target.style.color = 'transparent';
-        else target.style.removeProperty('color');
-      },
-      { observe: [target.parentElement] },
-    );
-    return () => {
-      stopMeasuring();
-      target.style.removeProperty('color');
-      target.closest('h1').style.removeProperty('transform');
-      const firstName = target.closest('h1').querySelector('[data-first-name]');
-      firstName.style.removeProperty('left');
-      firstName.style.removeProperty('color');
-      firstName.querySelector('[data-edge-ink]').style.cssText = '';
-    };
-  });
 
   let motion = $state('');
   let pressed = false;
@@ -42,6 +15,12 @@
   function play() {
     if (pressed) return;
     motion = 'enter';
+  }
+
+  // Only keyboard focus counts as hover: a tap or click also focuses the
+  // button, and that mustn't leave the slice shifted.
+  function focus(event) {
+    if (event.currentTarget.matches(':focus-visible')) play();
   }
 
   function leave() {
@@ -64,16 +43,16 @@
   }
 </script>
 
-{#if bounds}
+{#if glyph}
   <button
-    style="transform: translate({bounds.x}px, {bounds.y}px); width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
+    style="transform: translate({glyph.x}px, {glyph.y}px); width: {glyph.width}px; height: {glyph.height}px; --cut-top: {glyph.cutTop}px; --cut-bottom: {glyph.cutBottom}px; --glyph: url('{glyph.image}')"
     class="inverts"
     type="button"
     aria-label={theme.current === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
     onclick={theme.toggle}
-    onmouseenter={play}
-    onmouseleave={leave}
-    onfocus={play}
+    onpointerenter={play}
+    onpointerleave={leave}
+    onfocus={focus}
     onpointerdown={press}
     onpointerup={release}
     onpointercancel={release}
