@@ -9,6 +9,7 @@ RUN apt-get update \
 
 # Keep exploration tools separate from this site's Svelte/Vite dependencies.
 # Install the browser binaries with the same version of Playwright as the CLI.
+# Keep in step with @playwright/test in package.json, which uses these browsers.
 ARG PLAYWRIGHT_VERSION=1.58.2
 ENV PLAYWRIGHT_BROWSERS_PATH=/opt/playwright-browsers
 ENV NODE_PATH=/opt/browser-tools/node_modules

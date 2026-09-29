@@ -171,14 +171,14 @@ These are historical context, not additional requirements to implement:
 
 ## Regression checks
 
-When modifying the relevant behavior, use browser interaction checks and rendered screenshots, not element bounds alone:
+Run `npm test`, or `npm run test:unit` and `npm run test:e2e` separately. Vitest covers pure helpers in `tests/unit`. Playwright runs `tests/e2e` in Chromium, Firefox and WebKit against its own Vite server on port 5174; outside the dev container, install its browsers first with `npx playwright install`.
 
-- Compare desktop, portrait, and landscape layouts, especially wrapped title spacing at 969/970 widths.
-- Check edge contact for the **g**, wrapped **y**, and toggle **o** at multiple pixel densities and after resizing/font loading.
-- Confirm link rectangles remain solid, contained, and correctly associated with their words; the text and targets must not shift during animation.
-- Exercise hover, quick exit/re-entry, movement between links, press/hold/release, double-click, touch, and keyboard activation.
-- Confirm balanced box spacing, fixed underline bottom/width during growth, and upward collapse on release, including queued second presses.
-- Check that real links navigate immediately, independently of unfinished effects.
-- Check system light/dark defaults, explicit overrides, reloads, live system changes, cross-tab changes, cleared settings, and blocked storage.
-- Verify reduced-motion behavior, theme glyph seams, both color themes, and absence of browser console errors.
-- Build successfully and keep the published `docs/` output current for site-code changes.
+The end-to-end suite checks edge contact at DPR 1, 1.5 and 2, toggle seams, 969/970 heading spacing, hit areas, navigation, link motion, reduced motion, theme selection and persistence, accessibility and keyboard use, console errors, and bar progress across resizes. It also compares Chromium screenshots, with the bars hidden, against the Linux baselines in `tests/e2e/visual.spec.js-snapshots`, so run it in the dev container. After an intended visual change, review the diff and then run `npx playwright test visual --update-snapshots`.
+
+These still need a person:
+
+- Real touch devices: tap, press and hold, and dragging off a link.
+- Moving the window between displays with different pixel densities.
+- Real macOS and Windows font rendering, including Safari.
+
+For site-code changes, also build and keep the published `docs/` output current.
