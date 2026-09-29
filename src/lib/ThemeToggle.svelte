@@ -22,6 +22,7 @@
         alignHeading(target);
         bounds = measureLetter(target);
         // The cropped bitmap has no side bearing: pin its last pixel directly.
+        // Both terms are whole device pixels, so x needs no extra snap.
         if (bounds) bounds.x = viewportInkRight() - bounds.width;
         if (bounds) target.style.color = 'transparent';
         else target.style.removeProperty('color');
@@ -124,7 +125,7 @@
 
 {#if bounds}
   <button
-    style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
+    style="transform: translate({bounds.x}px, {bounds.y}px); width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
     type="button"
     aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
     on:click={toggle}
@@ -147,8 +148,13 @@
 {/if}
 
 <style>
+  /* Positioned by transform, not left/top: at fractional DPRs, layout rounding
+     (Chromium) and clip-path origins (Firefox) miss the device grid and leave
+     seams at the slice cuts. */
   button {
     position: fixed;
+    left: 0;
+    top: 0;
     z-index: 10;
     padding: 0;
     border: 0;
@@ -169,17 +175,13 @@
   }
   /* Cuts are snapped to device pixels to keep the three pieces seamless. */
   .top { clip-path: inset(0 0 calc(100% - var(--cut-top)) 0); }
-  .middle {
-    clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0);
-    transform: translateX(0);
-    transition: transform 400ms linear;
-  }
+  .middle { clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0); }
   .bottom { clip-path: inset(var(--cut-bottom) 0 0 0); }
-  .enter .middle { transform: translateX(-4px); }
-  .fire .middle { transform: translateX(8px); }
-  .fire .middle, .recover .middle { transition-duration: 60ms; }
-  @media (prefers-reduced-motion: reduce) {
-    .middle { transition: none; }
-    .enter .middle, .fire .middle { transform: none; }
+  /* Motion is opt-in, so reduced motion keeps the slices at rest. */
+  @media (prefers-reduced-motion: no-preference) {
+    .middle { transition: transform 400ms linear; }
+    .enter .middle { transform: translateX(-4px); }
+    .fire .middle { transform: translateX(8px); }
+    .fire .middle, .recover .middle { transition-duration: 60ms; }
   }
 </style>

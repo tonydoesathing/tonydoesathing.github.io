@@ -74,18 +74,16 @@
     height: var(--height);
     background: var(--primary);
     pointer-events: none;
-    animation: drift var(--duration) linear var(--delay) both;
+    /* Where a bar rests when motion is reduced. */
+    transform: translateX(-70vw);
+  }
+
+  @media (prefers-reduced-motion: no-preference) {
+    .bar { animation: drift var(--duration) linear var(--delay) both; }
   }
 
   @keyframes drift {
     from { transform: translateX(0); }
     to { transform: translateX(calc(-1 * var(--distance))); }
-  }
-
-  @media (prefers-reduced-motion: reduce) {
-    .bar {
-      animation: none;
-      transform: translateX(-70vw);
-    }
   }
 </style>

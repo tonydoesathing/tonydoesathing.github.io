@@ -148,11 +148,9 @@
     height: var(--underline-height);
     transform: scaleX(0);
     transform-origin: left;
-    transition: top 120ms linear, height 120ms linear;
   }
   a[data-phase='hover'] :global(.link-bar) {
     transform: scaleX(1);
-    animation: bar-enter 240ms linear both;
   }
   a[data-phase='press'] :global(.link-bar),
   a[data-phase='release'] :global(.link-bar) {
@@ -160,19 +158,29 @@
     height: calc(var(--underline-top) + var(--underline-height) - var(--box-top));
     transform: scaleX(1);
   }
-  /* Explicit start geometry also applies to queued presses: the previous
-     release may still have full box dimensions beneath its collapsed scale. */
-  a[data-phase='press'] :global(.link-bar) {
-    transition: none;
-    animation: bar-grow 120ms linear both;
-  }
   a[data-phase='exit'] :global(.link-bar) {
     transform-origin: right;
-    animation: bar-exit 360ms linear both;
   }
   a[data-phase='release'] :global(.link-bar) {
     transform-origin: center top;
-    animation: bar-exit-up 360ms linear both;
+  }
+
+  /* Motion is opt-in, so reduced motion shows each phase's end state at once. */
+  @media (prefers-reduced-motion: no-preference) {
+    a[data-phase='hover'] :global(.link-bar) {
+      animation: bar-enter 240ms linear both;
+    }
+    /* Explicit start geometry also applies to queued presses: the previous
+       release may still have full box dimensions beneath its collapsed scale. */
+    a[data-phase='press'] :global(.link-bar) {
+      animation: bar-grow 120ms linear both;
+    }
+    a[data-phase='exit'] :global(.link-bar) {
+      animation: bar-exit 360ms linear both;
+    }
+    a[data-phase='release'] :global(.link-bar) {
+      animation: bar-exit-up 360ms linear both;
+    }
   }
   @keyframes bar-grow {
     from { top: var(--underline-top); height: var(--underline-height); }
@@ -181,8 +189,4 @@
   @keyframes bar-enter { from { transform: scaleX(0); } to { transform: scaleX(1); } }
   @keyframes bar-exit { from { transform: scaleX(1); } to { transform: scaleX(0); } }
   @keyframes bar-exit-up { from { transform: scaleY(1); } to { transform: scaleY(0); } }
-
-  @media (prefers-reduced-motion: reduce) {
-    .menu :global(.link-bar) { transition: none; animation: none; }
-  }
 </style>

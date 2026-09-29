@@ -13,9 +13,10 @@ export function measureLetter(element) {
   const width = (right - left) / scale;
   const height = (bottom - top) / scale;
   const x = offsetX + left / scale;
-  const y = offsetY + top / scale;
-  // Align internal cuts to physical pixels, including a fractional glyph origin.
-  const cut = (fraction) => Math.round((y + height * fraction) * scale) / scale - y;
+  // The raster origin can sit between physical pixels (e.g. at 1.5×). Snap it
+  // so the bitmap and the slice cuts below land on whole device rows.
+  const y = Math.round((offsetY + top / scale) * scale) / scale;
+  const cut = (fraction) => Math.round(height * fraction * scale) / scale;
   const glyph = halfFilledGlyph(data, sourceWidth, left, top, right, bottom);
   return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), glyph };
 }
