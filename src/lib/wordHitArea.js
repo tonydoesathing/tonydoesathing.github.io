@@ -14,15 +14,16 @@ export function wordHitArea(menu) {
     const hitArea = document.createElement('span');
     hitArea.setAttribute('aria-hidden', 'true');
     hitArea.style.cssText = 'position:absolute;pointer-events:auto;cursor:pointer';
-    link.append(baseline, hitArea);
-    return { link, baseline, hitArea };
-  });
+    const ink = document.createElement('span');
+    ink.className = 'link-ink';
+    ink.setAttribute('aria-hidden', 'true');
+    const bar = document.createElement('span');
+    bar.className = 'link-bar';
+    bar.setAttribute('aria-hidden', 'true');
+    link.append(baseline, ink, bar, hitArea);
+    return { link, baseline, hitArea, ink, bar };
 
-  const edgeInk = document.createElement('span');
-  edgeInk.setAttribute('aria-hidden', 'true');
-  entries[0].link.insertBefore(edgeInk, entries[0].hitArea);
-  // Keep native hover/focus underlines visible while the ink overlay is shown.
-  entries[0].link.style.textDecorationColor = 'white';
+  });
 
   let pendingFrame = 0;
   let disposed = false;
@@ -40,7 +41,21 @@ export function wordHitArea(menu) {
         const left = edgeRaster.offsetX + edge.left / edgeRaster.scale;
         first.link.style.transform = `translateX(${-left}px)`;
       }
-      paintEdgeText(first.link, first.baseline, edgeInk, 'left');
+      entries.forEach(({ link, baseline, ink }, i) => {
+        paintEdgeText(link, baseline, ink, i === 0 ? 'left' : null);
+        // The displayed raster already includes the edge correction/crop.
+        // Use its exact geometry, not the padded and divided hit rectangle.
+        for (const dimension of ['top', 'height']) {
+          link.style.setProperty(`--ink-${dimension}`, ink.style[dimension]);
+        }
+        const rect = link.getBoundingClientRect();
+        const size = parseFloat(getComputedStyle(link).fontSize);
+        const scale = window.devicePixelRatio || 1;
+        const snap = value => Math.round(value * scale) / scale;
+        link.style.setProperty('--underline-width', `${rect.width}px`);
+        link.style.setProperty('--underline-top', `${snap(baseline.getBoundingClientRect().top + size * 0.06) - rect.top}px`);
+        link.style.setProperty('--underline-height', `${Math.max(1 / scale, snap(size / 12))}px`);
+      });
       const boxes = entries.map(({ link, baseline }) => {
         const raster = rasterizeText(link, baseline, 1);
         const bounds = inkBounds(raster, 32);
@@ -90,10 +105,13 @@ export function wordHitArea(menu) {
       stopObservingPixels();
       document.fonts.removeEventListener('loadingdone', scheduleMeasure);
       window.removeEventListener('resize', scheduleMeasure);
-      edgeInk.remove();
-      entries[0].link.style.removeProperty('color');
-      entries[0].link.style.removeProperty('text-decoration-color');
-      entries.forEach(({ link, baseline, hitArea }) => {
+      entries.forEach(({ link, baseline, hitArea, ink, bar }) => {
+        ink.remove();
+        bar.remove();
+        for (const prefix of ['ink', 'underline']) {
+          for (const dimension of ['left', 'top', 'width', 'height']) link.style.removeProperty(`--${prefix}-${dimension}`);
+        }
+        link.style.removeProperty('color');
         baseline.remove();
         hitArea.remove();
         link.style.removeProperty('pointer-events');
