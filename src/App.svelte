@@ -8,7 +8,7 @@
 
 <main>
   <!-- Keep the letter and a zero-width baseline marker in the original text flow. -->
-  <h1>Tony Mastromarin<span bind:this={lastLetter}>o<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
+  <h1><span class="first-name" data-first-name>Tony<span class="baseline" data-baseline aria-hidden="true"></span><span data-edge-ink aria-hidden="true"></span></span> Mastromarin<span bind:this={lastLetter}>o<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
   <Menu />
   <ThemeToggle target={lastLetter} />
 
@@ -20,6 +20,8 @@
 </main>
 
 <style>
+  .first-name { position: relative; }
+
   .baseline {
     display: inline-block;
     width: 0;

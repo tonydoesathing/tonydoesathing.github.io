@@ -1,26 +1,14 @@
 import { rasterizeText } from './rasterizeText.js';
+import { inkBounds } from './inkBounds.js';
 
 // Measure visible ink rather than the taller inline text box. Raster bounds
 // also avoid WebKit's canvas text metrics including the glyph's side bearings.
 export function measureLetter(element) {
   const { data, width: sourceWidth, height: sourceHeight, scale, offsetX, offsetY } =
     rasterizeText(element, element.querySelector('[data-baseline]'));
-  let left = sourceWidth;
-  let right = 0;
-  let top = sourceHeight;
-  let bottom = 0;
-  for (let y = 0; y < sourceHeight; y += 1) {
-    for (let x = 0; x < sourceWidth; x += 1) {
-      if (data[(y * sourceWidth + x) * 4 + 3] > 0) {
-        left = Math.min(left, x);
-        right = Math.max(right, x + 1);
-        top = Math.min(top, y);
-        bottom = Math.max(bottom, y + 1);
-      }
-    }
-  }
-  // A temporarily empty/tiny glyph should leave the original text visible.
-  if (right <= left || bottom <= top) return null;
+  const ink = inkBounds({ data, width: sourceWidth, height: sourceHeight });
+  if (!ink) return null;
+  const { left, right, top, bottom } = ink;
 
   const width = (right - left) / scale;
   const height = (bottom - top) / scale;

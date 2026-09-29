@@ -1,4 +1,7 @@
 import { rasterizeText } from './rasterizeText.js';
+import { inkBounds } from './inkBounds.js';
+import { paintEdgeText } from './edgeText.js';
+import { observePixelRatio } from './observePixelRatio.js';
 
 // The visible HTML text keeps its layout. This invisible child keeps native
 // link activation, hover, keyboard access and context menus, with a hit region
@@ -15,21 +18,38 @@ export function wordHitArea(menu) {
     return { link, baseline, hitArea };
   });
 
+  const edgeInk = document.createElement('span');
+  edgeInk.setAttribute('aria-hidden', 'true');
+  entries[0].link.insertBefore(edgeInk, entries[0].hitArea);
+  // Keep native hover/focus underlines visible while the ink overlay is shown.
+  entries[0].link.style.textDecorationColor = 'white';
+
   let pendingFrame = 0;
   let disposed = false;
   function scheduleMeasure() {
     if (disposed || pendingFrame) return;
     pendingFrame = requestAnimationFrame(() => {
       pendingFrame = 0;
+      // Keep the first painted column at the viewport edge; leave the other
+      // words at their existing horizontal positions.
+      const first = entries[0];
+      first.link.style.transform = '';
+      const edgeRaster = rasterizeText(first.link, first.baseline);
+      const edge = inkBounds(edgeRaster);
+      if (edge) {
+        const left = edgeRaster.offsetX + edge.left / edgeRaster.scale;
+        first.link.style.transform = `translateX(${-left}px)`;
+      }
+      paintEdgeText(first.link, first.baseline, edgeInk, 'left');
       const boxes = entries.map(({ link, baseline }) => {
         const raster = rasterizeText(link, baseline, 1);
-        const bounds = inkBounds(raster);
+        const bounds = inkBounds(raster, 32);
         if (!bounds) return null;
         return {
           left: raster.offsetX + bounds.left / raster.scale,
           top: raster.offsetY + bounds.top / raster.scale,
-          right: raster.offsetX + (bounds.right + 1) / raster.scale,
-          bottom: raster.offsetY + (bounds.bottom + 1) / raster.scale,
+          right: raster.offsetX + bounds.right / raster.scale,
+          bottom: raster.offsetY + bounds.bottom / raster.scale,
         };
       });
       // Split the small vertical overlap between neighboring word rectangles.
@@ -54,6 +74,7 @@ export function wordHitArea(menu) {
     });
   }
 
+  const stopObservingPixels = observePixelRatio(scheduleMeasure);
   const observer = new ResizeObserver(scheduleMeasure);
   entries.forEach(({ link }) => observer.observe(link));
   document.fonts.ready.then(scheduleMeasure);
@@ -66,27 +87,18 @@ export function wordHitArea(menu) {
       disposed = true;
       cancelAnimationFrame(pendingFrame);
       observer.disconnect();
+      stopObservingPixels();
       document.fonts.removeEventListener('loadingdone', scheduleMeasure);
       window.removeEventListener('resize', scheduleMeasure);
+      edgeInk.remove();
+      entries[0].link.style.removeProperty('color');
+      entries[0].link.style.removeProperty('text-decoration-color');
       entries.forEach(({ link, baseline, hitArea }) => {
         baseline.remove();
         hitArea.remove();
         link.style.removeProperty('pointer-events');
+        link.style.removeProperty('transform');
       });
     },
   };
-}
-
-function inkBounds({ data, width, height }) {
-  let left = width, top = height, right = -1, bottom = -1;
-  for (let y = 0; y < height; y += 1) {
-    for (let x = 0; x < width; x += 1) {
-      if (data[(y * width + x) * 4 + 3] < 32) continue;
-      left = Math.min(left, x);
-      right = Math.max(right, x);
-      top = Math.min(top, y);
-      bottom = Math.max(bottom, y);
-    }
-  }
-  return right < left ? null : { left, top, right, bottom };
 }

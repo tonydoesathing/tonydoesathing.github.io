@@ -1,6 +1,9 @@
 <script>
   import { onMount, tick } from 'svelte';
   import { measureLetter } from './measureLetter.js';
+  import { alignHeading } from './alignHeading.js';
+  import { viewportInkRight } from './edgeText.js';
+  import { observePixelRatio } from './observePixelRatio.js';
 
   export let target;
   let bounds;
@@ -16,12 +19,16 @@
       if (disposed || !target || pendingFrame) return;
       pendingFrame = requestAnimationFrame(() => {
         pendingFrame = 0;
+        alignHeading(target);
         bounds = measureLetter(target);
+        // The cropped bitmap has no side bearing: pin its last pixel directly.
+        if (bounds) bounds.x = viewportInkRight() - bounds.width;
         if (bounds) target.style.color = 'transparent';
         else target.style.removeProperty('color');
       });
     };
 
+    const stopObservingPixels = observePixelRatio(scheduleMeasure);
     tick().then(() => {
       if (disposed) return;
       observer = new ResizeObserver(scheduleMeasure);
@@ -35,9 +42,17 @@
       disposed = true;
       cancelAnimationFrame(pendingFrame);
       observer?.disconnect();
+      stopObservingPixels();
       document.fonts.removeEventListener('loadingdone', scheduleMeasure);
       window.removeEventListener('resize', scheduleMeasure);
-      if (target) target.style.removeProperty('color');
+      if (target) {
+        target.style.removeProperty('color');
+        target.closest('h1').style.removeProperty('transform');
+        const firstName = target.closest('h1').querySelector('[data-first-name]');
+        firstName.style.removeProperty('left');
+        firstName.style.removeProperty('color');
+        firstName.querySelector('[data-edge-ink]').style.cssText = '';
+      }
     };
   });
 
