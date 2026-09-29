@@ -1,14 +1,12 @@
 <script>
   import { onMount, tick } from 'svelte';
 
-  export let min_y = 1 / 3;
+  // [min, max] ranges; each pass picks uniformly within them. Speed is in
   // CSS pixels per second, independent of the viewport and bar width.
-  export let min_speed = 24;
-  export let max_speed = 36;
-  export let min_width = 0.5;
-  export let max_width = 1.5;
-  export let min_height = 1 / 24;
-  export let max_height = 1 / 8;
+  export let widthVw = [50, 150];
+  export let heightVh = [100 / 24, 100 / 8];
+  export let topVh = [100 / 3, 100];
+  export let speedPxPerSecond = [24, 36];
 
   let pass;
   let bar;
@@ -16,16 +14,17 @@
   let distance;
   let delay;
   let viewportWidth;
-  const random = (min, max) => min + Math.random() * (max - min);
+  /** @param {number[]} range */
+  const random = ([min, max]) => min + Math.random() * (max - min);
 
   function reset() {
     pass = {
-      width: random(min_width, max_width) * 100,
-      height: random(min_height, max_height) * 100,
-      y: random(min_y, 1) * 100,
-      speed: random(min_speed, max_speed),
+      width: random(widthVw),
+      height: random(heightVh),
+      y: random(topVh),
+      speed: random(speedPxPerSecond),
       // Only the first pass begins partway across the screen.
-      start: pass ? 0 : random(0.05, 0.95),
+      start: pass ? 0 : random([0.05, 0.95]),
     };
     updateDuration();
   }
@@ -60,7 +59,6 @@
     <div
       bind:this={bar}
       class="bar"
-      aria-hidden="true"
       style="--width: {pass.width}vw; --height: {pass.height}vh; --y: {pass.y}vh; --duration: {duration}ms; --distance: {distance}px; --delay: {delay}ms"
       on:animationend={reset}
     ></div>
@@ -75,7 +73,6 @@
     width: var(--width);
     height: var(--height);
     background: var(--primary);
-    pointer-events: none;
     /* Where a bar rests when motion is reduced. */
     transform: translateX(-70vw);
   }

@@ -1,6 +1,7 @@
 <script>
   import { onDestroy } from 'svelte';
   import { wordHitArea } from './wordHitArea.js';
+  import { LINKS } from '../content.js';
 
   let phases = {};
   // Plain Maps: this bookkeeping never renders, so it needn't be reactive.
@@ -8,11 +9,6 @@
   const timers = new Map();
   // eslint-disable-next-line svelte/prefer-svelte-reactivity
   const intents = new Map();
-  const links = [
-    { id: 'first', label: 'github', href: 'https://github.com/tonydoesathing' },
-    { id: 'second', label: 'resume', href: '/TonyMastromarinoResume.pdf' },
-    { id: 'third', label: 'email', href: 'mailto:mastromarino.tony@gmail.com' },
-  ];
   function setPhase(id, phase) {
     phases = { ...phases, [id]: phase };
   }
@@ -81,79 +77,66 @@
   onDestroy(reset);
 </script>
 
-<nav use:wordHitArea class="menu" aria-label="Primary">
-  {#each links as link (link.id)}
+<nav use:wordHitArea class="menu inverts" aria-label="Primary">
+  {#each LINKS as link (link.label)}
     <a
-      id={link.id}
       href={link.href}
-      data-phase={phases[link.id] || ''}
-      on:pointerenter={() => enter(link.id)}
+      style:--offset={link.offset}
+      style:--landscape-scale={link.landscapeScale}
+      data-phase={phases[link.label] || ''}
+      on:pointerenter={() => enter(link.label)}
       on:focus={event => {
-        if (event.currentTarget.matches(':focus-visible')) enter(link.id);
+        if (event.currentTarget.matches(':focus-visible')) enter(link.label);
       }}
-      on:pointerdown={event => press(event, link.id)}
-      on:pointerup={() => release(link.id)}
-      on:pointerleave={() => leave(link.id)}
-      on:pointercancel={() => leave(link.id)}
-      on:keydown={event => press(event, link.id)}
-      on:keyup={() => release(link.id)}
-      on:blur={() => leave(link.id)}
-      on:click={() => release(link.id)}>{link.label}</a
+      on:pointerdown={event => press(event, link.label)}
+      on:pointerup={() => release(link.label)}
+      on:pointerleave={() => leave(link.label)}
+      on:pointercancel={() => leave(link.label)}
+      on:keydown={event => press(event, link.label)}
+      on:keyup={() => release(link.label)}
+      on:blur={() => leave(link.label)}
+      on:click={() => release(link.label)}>{link.label}</a
     >
   {/each}
 </nav>
 
 <style>
   .menu {
+    --link-size: 8vh;
     position: fixed;
     bottom: 10%;
-    z-index: 3;
-    mix-blend-mode: difference;
+    z-index: var(--layer-menu);
     font-family: Roboto, sans-serif;
     font-weight: bold;
-    font-size: 8vh;
-    line-height: calc(8vh / (64 / 47));
-    color: white;
+    font-size: var(--link-size);
+    line-height: calc(var(--link-size) * 47 / 64);
   }
 
+  /* Offsets are multiples of the link size, set per link from content.js;
+     --scale applies the landscape-only factor. */
   a {
+    --scale: var(--landscape-scale, 1);
     display: block;
     position: relative;
+    left: calc(var(--offset) * var(--scale) * var(--link-size));
     width: max-content;
     color: inherit;
     text-decoration: none;
   }
 
-  #first {
-    left: calc(13 / 64 * 8vh * -0.9);
-  }
-  #second {
-    left: calc(41 / 64 * 8vh);
-  }
-  #third {
-    left: calc(174 / 64 * 8vh);
-  }
-
   a:focus-visible {
-    outline: 2px solid white;
+    outline: var(--focus-ring);
     outline-offset: 3px;
   }
 
   @media screen and (orientation: portrait) {
     .menu {
+      --link-size: 6vh;
       left: 1vh;
-      font-size: 6vh;
-      line-height: calc(6vh / (64 / 47));
     }
 
-    #first {
-      left: calc(13 / 64 * 6vh * -1);
-    }
-    #second {
-      left: calc(41 / 64 * 6vh);
-    }
-    #third {
-      left: calc(174 / 64 * 6vh);
+    a {
+      --scale: 1;
     }
   }
 
@@ -167,8 +150,7 @@
   .menu :global(.link-bar) {
     position: absolute;
     pointer-events: none;
-    background: white;
-    mix-blend-mode: difference;
+    background: currentColor;
     left: 0;
     top: var(--underline-top);
     width: var(--underline-width);

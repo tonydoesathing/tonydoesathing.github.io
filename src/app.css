@@ -1,6 +1,14 @@
 :root {
-  --primary: rgba(0, 0, 0, 1);
-  --background: rgba(255, 255, 255, 1);
+  /* Monochrome palette; dark mode swaps the two. */
+  --primary: #000;
+  --background: #fff;
+  /* Stacking order, back to front, above the background bars. */
+  --layer-menu: 3;
+  --layer-heading: 5;
+  --layer-toggle: 10;
+  /* White, like the inverting text and glyphs it surrounds. */
+  --focus-ring: 2px solid #fff;
+
   background-color: var(--background);
   color-scheme: light;
 
@@ -12,8 +20,8 @@
 }
 
 :root[data-theme='dark'] {
-  --primary: rgba(255, 255, 255, 1);
-  --background: rgba(0, 0, 0, 1);
+  --primary: #fff;
+  --background: #000;
   color-scheme: dark;
 }
 
@@ -23,15 +31,13 @@ body {
   color: var(--primary);
 }
 
-h1 {
-  font-family: Forum, serif;
-  /* White difference-blended text inverts either theme beneath it. */
-  color: white;
-  mix-blend-mode: difference;
-  margin: 0;
-  z-index: 5;
-}
-
 a {
   color: var(--primary);
+}
+
+/* White difference-blended over the page inverts whatever is beneath: it
+   reads as the primary colour in either theme, and flips where a bar passes. */
+.inverts {
+  color: #fff;
+  mix-blend-mode: difference;
 }

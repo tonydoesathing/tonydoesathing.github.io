@@ -2,15 +2,17 @@
   import Menu from './lib/Menu.svelte';
   import Rectangle from './lib/Rectangle.svelte';
   import ThemeToggle from './lib/ThemeToggle.svelte';
+  import { NAME } from './content.js';
 
   let lastLetter;
 </script>
 
 <main>
   <!-- Keep the letter and a zero-width baseline marker in the original text flow,
-       on one line so formatting can't add whitespace between the spans. -->
+       on one line so formatting can't add whitespace between the spans.
+       The final letter is split off to anchor the theme toggle. -->
   <!-- prettier-ignore -->
-  <h1><span class="first-name" data-first-name>Tony<span class="baseline" data-baseline aria-hidden="true"></span><span data-edge-ink aria-hidden="true"></span></span> Mastromarin<span bind:this={lastLetter}>o<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
+  <h1 class="inverts"><span class="first-name" data-first-name>{NAME.first}<span class="baseline" data-baseline aria-hidden="true"></span><span data-edge-ink aria-hidden="true"></span></span> {NAME.last.slice(0, -1)}<span bind:this={lastLetter}>{NAME.last.at(-1)}<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
   <Menu />
   <ThemeToggle target={lastLetter} />
 
@@ -42,6 +44,9 @@
 
   h1 {
     position: fixed;
+    z-index: var(--layer-heading);
+    margin: 0;
+    font-family: Forum, serif;
     font-size: 15vh;
     line-height: 0.8;
     top: 30%;

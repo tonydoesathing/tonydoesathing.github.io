@@ -1,11 +1,12 @@
-import { rasterizeText } from './rasterizeText.js';
+import { rasterizeText, viewportBox } from './rasterizeText.js';
 import { inkBounds } from './inkBounds.js';
-import { paintEdgeText, viewportInkRight } from './edgeText.js';
+import { paintEdgeText } from './edgeText.js';
+import { viewportRightEdge } from './pixels.js';
 
 function rightEdge(element) {
   const raster = rasterizeText(element, element.querySelector('[data-baseline]'));
   const ink = inkBounds(raster);
-  return ink ? raster.offsetX + ink.right / raster.scale : null;
+  return ink ? viewportBox(raster, ink).right : null;
 }
 
 // Translate only; preserve the heading's original wrapping and vertical layout.
@@ -17,7 +18,7 @@ export function alignHeading(lastLetter) {
   firstName.style.removeProperty('color');
   const overlay = firstName.querySelector('[data-edge-ink]');
   overlay.style.display = 'none';
-  const viewportRight = viewportInkRight();
+  const viewportRight = viewportRightEdge();
   const right = rightEdge(lastLetter);
   if (right === null) return;
   heading.style.transform = `translateX(${viewportRight - right}px)`;

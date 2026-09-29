@@ -4,6 +4,7 @@
     <meta charset="UTF-8" />
     <script>
       // Apply a saved choice, or the system preference, before the first paint.
+      // Mirrors STORAGE_KEY, THEMES and resolveTheme in src/lib/theme.svelte.js.
       let savedTheme;
       try {
         savedTheme = localStorage.getItem('theme');
@@ -31,6 +32,7 @@
   <body>
     <div id="app"></div>
     <noscript>
+      <!-- Keep in sync with src/content.js. -->
       <p>Tony Mastromarino</p>
       <p>
         <a href="https://github.com/tonydoesathing">github</a> ·
