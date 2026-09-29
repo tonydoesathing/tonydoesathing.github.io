@@ -2,17 +2,34 @@
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Restore the selected theme before the page paints.
+      try {
+        if (localStorage.getItem('theme') === 'dark') {
+          document.documentElement.dataset.theme = 'dark';
+        }
+      } catch {}
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="description" content="Tony Mastromarino — projects on GitHub, résumé, and contact." />
+    <meta property="og:title" content="Tony Mastromarino" />
+    <meta property="og:description" content="Projects on GitHub, résumé, and contact." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
     <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Forum">
+          href="https://fonts.googleapis.com/css?family=Forum&amp;display=swap">
     <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css?family=Roboto">
+    href="https://fonts.googleapis.com/css?family=Roboto&amp;display=swap">
     <title>Tony Mastromarino</title>
-    <script type="module" crossorigin src="/assets/index.38d1876f.js"></script>
-    <link rel="stylesheet" href="/assets/index.d7184908.css">
+    <script type="module" crossorigin src="/assets/index.ebc06075.js"></script>
+    <link rel="stylesheet" href="/assets/index.af0c0ef6.css">
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <p>Tony Mastromarino</p>
+      <p><a href="https://github.com/tonydoesathing">github</a> · <a href="/TonyMastromarinoResume.pdf">resume</a> · <a href="mailto:mastromarino.tony@gmail.com">email</a></p>
+    </noscript>
     
   </body>
 </html>

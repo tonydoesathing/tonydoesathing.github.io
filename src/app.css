@@ -1,9 +1,8 @@
 :root {
-
-  --primary: rgba(0,0,0,1);
+  --primary: rgba(0, 0, 0, 1);
   --background: rgba(255, 255, 255, 1);
   background-color: var(--background);
-  overflow: hidden;
+  color-scheme: light;
 
   font-synthesis: none;
   text-rendering: optimizeLegibility;
@@ -11,48 +10,28 @@
   -moz-osx-font-smoothing: grayscale;
   -webkit-text-size-adjust: 100%;
 }
-svg{
-  fill:var(--primary);
-  position: fixed;
+
+:root[data-theme='dark'] {
+  --primary: rgba(255, 255, 255, 1);
+  --background: rgba(0, 0, 0, 1);
+  color-scheme: dark;
 }
 
-/* body {
-  margin: 0;
-  display: flex;
-  place-items: center;
-  min-width: 320px;
-  min-height: 100vh;
-} */
+/* This margin is part of the original composition. */
+body {
+  margin: 8px;
+  color: var(--primary);
+}
 
 h1 {
   font-family: Forum, serif;
-  
-  color: var(--background);
+  /* White difference-blended text inverts either theme beneath it. */
+  color: white;
   mix-blend-mode: difference;
   margin: 0;
   z-index: 5;
 }
 
-
-h2 {
-  font-family: Roboto, sans-serif;
-  margin: 0;
-  
-  color: var(--background);
-}
-
-h2:hover{
-  text-decoration: underline;
-}
-
-a{
+a {
   color: var(--primary);
 }
-
-/* #app {
-  max-width: 1280px;
-  margin: 0 auto;
-  padding: 2rem;
-  text-align: center;
-} */
-

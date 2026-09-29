@@ -1,54 +1,91 @@
 <script>
-import { tweened } from 'svelte/motion';
+  import { onMount, tick } from 'svelte';
 
+  export let min_y = 1 / 3;
+  // CSS pixels per second, independent of the viewport and bar width.
+  export let min_speed = 24;
+  export let max_speed = 36;
+  export let min_width = 0.5;
+  export let max_width = 1.5;
+  export let min_height = 1 / 24;
+  export let max_height = 1 / 8;
 
+  let pass;
+  let bar;
+  let duration;
+  let distance;
+  let viewportWidth;
+  const random = (min, max) => min + Math.random() * (max - min);
 
-import { onMount } from "svelte";
+  function reset() {
+    pass = {
+      width: random(min_width, max_width) * 100,
+      height: random(min_height, max_height) * 100,
+      y: random(min_y, 1) * 100,
+      speed: random(min_speed, max_speed),
+      // Only the first pass begins partway across the screen.
+      start: pass ? 0 : random(0.05, 0.95),
+    };
+    updateDuration();
+  }
 
+  function updateDuration() {
+    viewportWidth = window.innerWidth;
+    distance = viewportWidth * (1 + pass.width / 100);
+    duration = distance / pass.speed * 1000;
+  }
 
-    export let min_y = 1/3; // percentage of screen height
-    export let min_duration=20*1000; // in miliseconds
-    export let max_duration = 30*1000; // in miliseconds
-    export let min_width = 0.5; // percentage of screen width
-    export let max_width = 1.5;
-    export let min_height = 1/24;
-    export let max_height = 1/8;
-    let width=0;
-    let height=0;
-    let y;
-	$: innerWidth = 0
-	$: innerHeight = 0
-    let leftpos;
-    let duration;
-
-    
-    const reset = ()=>{
-        width = Math.random()*((max_width-min_width)*innerWidth)+min_width*innerWidth;
-        
-        height = Math.random()*((max_height-min_height)*innerHeight)+min_height*innerHeight;
-        y=Math.random()*(innerHeight*(1-min_y))+min_y*innerHeight;
-        duration = Math.random()*(max_duration-min_duration)+min_duration;
-
-        leftpos=tweened(-width, {
-            duration: duration,
-        });
-        
-        leftpos.set(innerWidth);
-        setTimeout(()=>{
-            reset();
-        }, duration);
-        
+  async function resize() {
+    if (!pass || viewportWidth === window.innerWidth) return;
+    const animation = bar?.getAnimations()[0];
+    const progress = animation?.effect.getComputedTiming().progress;
+    updateDuration();
+    await tick();
+    // Changing duration alone would jump to a different point in the sweep.
+    if (animation && progress != null) {
+      animation.currentTime = (progress - pass.start) * duration;
     }
+  }
 
-    onMount(async () => {
-        reset();
-	});
-
+  onMount(reset);
 </script>
-<svelte:window bind:innerWidth  bind:innerHeight />
 
+<svelte:window on:resize={resize} />
 
+<!-- Negative delay places the first pass partway through its CSS animation. -->
+{#if pass}
+  {#key pass}
+    <div
+      bind:this={bar}
+      class="bar"
+      aria-hidden="true"
+      style="--width: {pass.width}vw; --height: {pass.height}vh; --y: {pass.y}vh; --duration: {duration}ms; --distance: {distance}px; --delay: {-pass.start * duration}ms"
+      on:animationend={reset}
+    ></div>
+  {/key}
+{/if}
 
-<svg width="{width}" height="{height}" style="top:{y}; right:{$leftpos};">
-    <rect  width="{width}" height="{height}"/>
-</svg>
+<style>
+  .bar {
+    position: fixed;
+    left: 100%;
+    top: var(--y);
+    width: var(--width);
+    height: var(--height);
+    background: var(--primary);
+    pointer-events: none;
+    animation: drift var(--duration) linear var(--delay) both;
+  }
+
+  @keyframes drift {
+    from { transform: translateX(0); }
+    to { transform: translateX(calc(-1 * var(--distance))); }
+  }
+
+  @media (prefers-reduced-motion: reduce) {
+    .bar {
+      animation: none;
+      transform: translateX(-70vw);
+    }
+  }
+</style>
