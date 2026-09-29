@@ -1,3 +1,10 @@
+const TEXT_RENDERING = {
+  auto: 'auto',
+  optimizespeed: 'optimizeSpeed',
+  optimizelegibility: 'optimizeLegibility',
+  geometricprecision: 'geometricPrecision',
+};
+
 // Measure the visible ink, not the much taller inline text box. Raster bounds
 // also work in WebKit, where canvas text bounds can include side bearings.
 export function measureLetter(element) {
@@ -13,13 +20,7 @@ export function measureLetter(element) {
   const context = canvas.getContext('2d', { willReadFrequently: true });
   context.scale(scale, scale);
   // Computed CSS keywords may be lowercase; canvas enum values are case-sensitive.
-  const textRendering = {
-    auto: 'auto',
-    optimizespeed: 'optimizeSpeed',
-    optimizelegibility: 'optimizeLegibility',
-    geometricprecision: 'geometricPrecision',
-  };
-  context.textRendering = textRendering[style.textRendering.toLowerCase()] || 'auto';
+  context.textRendering = TEXT_RENDERING[style.textRendering.toLowerCase()] || 'auto';
   context.fontKerning = style.fontKerning;
   // Forum has only its regular face and synthesis is disabled. Before it loads,
   // the serif fallback can have a real bold face, so retain that weight.
@@ -48,6 +49,9 @@ export function measureLetter(element) {
       }
     }
   }
+  // A temporarily empty/tiny glyph should leave the original text visible.
+  if (right <= left || bottom <= top) return null;
+
   const width = (right - left) / scale;
   const height = (bottom - top) / scale;
   const x = offsetX + left / scale;
@@ -58,7 +62,6 @@ export function measureLetter(element) {
   return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), glyph };
 }
 
-
 // Reuse the rasterized font outline, filling only the space between the two
 // strokes of the o. Its asymmetric contour and varying stroke weight survive.
 function halfFilledGlyph(source, sourceWidth, left, top, right, bottom) {
@@ -68,7 +71,7 @@ function halfFilledGlyph(source, sourceWidth, left, top, right, bottom) {
   canvas.width = width;
   canvas.height = height;
   const context = canvas.getContext('2d');
-  const normal = context.createImageData(width, height);
+  const image = context.createImageData(width, height);
 
   for (let y = 0; y < height; y += 1) {
     const alphaAt = x => source[((y + top) * sourceWidth + x + left) * 4 + 3];
@@ -85,9 +88,12 @@ function halfFilledGlyph(source, sourceWidth, left, top, right, bottom) {
       const alpha = alphaAt(x);
       const inside = x > firstStroke && x < lastStroke;
       const leftCoverage = Math.min(1, Math.max(0, width / 2 - x));
-      normal.data.set([255, 255, 255, inside ? alpha + (255 - alpha) * leftCoverage : alpha], index);
+      image.data[index] = 255;
+      image.data[index + 1] = 255;
+      image.data[index + 2] = 255;
+      image.data[index + 3] = inside ? alpha + (255 - alpha) * leftCoverage : alpha;
     }
   }
-  context.putImageData(normal, 0, 0);
+  context.putImageData(image, 0, 0);
   return canvas.toDataURL();
 }

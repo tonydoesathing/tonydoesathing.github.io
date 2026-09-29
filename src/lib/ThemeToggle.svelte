@@ -1,6 +1,6 @@
 <script>
   import { onMount, tick } from 'svelte';
-  import { measureLetter } from './measureLetter';
+  import { measureLetter } from './measureLetter.js';
 
   export let target;
   let bounds;
@@ -8,26 +8,35 @@
   onMount(() => {
     let disposed = false;
     let observer;
-    const measure = () => {
-      if (disposed || !target) return;
-      bounds = measureLetter(target);
-      target.style.color = 'transparent';
+    let pendingFrame = 0;
+
+    // Fonts and resizing can notify several listeners together. Rasterize once
+    // per pending frame; this is not an ongoing JavaScript animation loop.
+    const scheduleMeasure = () => {
+      if (disposed || !target || pendingFrame) return;
+      pendingFrame = requestAnimationFrame(() => {
+        pendingFrame = 0;
+        bounds = measureLetter(target);
+        if (bounds) target.style.color = 'transparent';
+        else target.style.removeProperty('color');
+      });
     };
 
     tick().then(() => {
       if (disposed) return;
-      measure();
-      observer = new ResizeObserver(measure);
+      observer = new ResizeObserver(scheduleMeasure);
       observer.observe(target.parentElement);
     });
-    document.fonts.ready.then(measure);
-    document.fonts.addEventListener('loadingdone', measure);
-    window.addEventListener('resize', measure);
+    document.fonts.ready.then(scheduleMeasure);
+    document.fonts.addEventListener('loadingdone', scheduleMeasure);
+    window.addEventListener('resize', scheduleMeasure);
+
     return () => {
       disposed = true;
+      cancelAnimationFrame(pendingFrame);
       observer?.disconnect();
-      document.fonts.removeEventListener('loadingdone', measure);
-      window.removeEventListener('resize', measure);
+      document.fonts.removeEventListener('loadingdone', scheduleMeasure);
+      window.removeEventListener('resize', scheduleMeasure);
       if (target) target.style.removeProperty('color');
     };
   });
@@ -46,15 +55,11 @@
     else if (motion !== 'recover') motion = 'exit';
   }
 
-  function fire() {
-    motion = 'fire';
-  }
-
   function press(event) {
     if (event.type === 'keydown' && (event.repeat || ![' ', 'Enter'].includes(event.key))) return;
     if (event.type === 'pointerdown' && event.button !== 0) return;
     pressed = true;
-    fire();
+    motion = 'fire';
   }
 
   function release(event) {
@@ -68,33 +73,36 @@
     dark = !dark;
     const theme = dark ? 'dark' : 'light';
     document.documentElement.dataset.theme = theme;
-    try { localStorage.setItem('theme', theme); } catch {}
+    try {
+      localStorage.setItem('theme', theme);
+    } catch {
+      // The control also works when browser storage is unavailable.
+    }
   }
-
 </script>
 
 {#if bounds}
-<button
-  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
-  type="button"
-  aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
-  on:click={toggle}
-  on:mouseenter={play}
-  on:mouseleave={leave}
-  on:focus={play}
-  on:pointerdown={press}
-  on:pointerup={release}
-  on:pointercancel={release}
-  on:keydown={press}
-  on:keyup={release}
-  on:blur={leave}
->
-  <span class="art {motion}" aria-hidden="true">
-    <span class="glyph top"></span>
-    <span class="glyph middle"></span>
-    <span class="glyph bottom"></span>
-  </span>
-</button>
+  <button
+    style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
+    type="button"
+    aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
+    on:click={toggle}
+    on:mouseenter={play}
+    on:mouseleave={leave}
+    on:focus={play}
+    on:pointerdown={press}
+    on:pointerup={release}
+    on:pointercancel={release}
+    on:keydown={press}
+    on:keyup={release}
+    on:blur={leave}
+  >
+    <span class="art {motion}" aria-hidden="true">
+      <span class="glyph top"></span>
+      <span class="glyph middle"></span>
+      <span class="glyph bottom"></span>
+    </span>
+  </button>
 {/if}
 
 <style>

@@ -7,6 +7,7 @@
 </script>
 
 <main>
+  <!-- Keep the letter and a zero-width baseline marker in the original text flow. -->
   <h1>Tony Mastromarin<span bind:this={lastLetter}>o<span class="baseline" data-baseline aria-hidden="true"></span></span></h1>
   <Menu />
   <ThemeToggle target={lastLetter} />
@@ -36,6 +37,7 @@
   h1 {
     position: fixed;
     font-size: 15vh;
+    line-height: 0.8;
     top: 30%;
     right: calc(6 / 128 * 15vh * -1);
     text-align: right;
@@ -44,7 +46,6 @@
   @media screen and (orientation: portrait) {
     h1 {
       font-size: 15vw;
-      line-height: 12vw;
       right: calc(6 / 128 * 15vw * -1);
     }
   }
