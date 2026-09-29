@@ -54,14 +54,14 @@ export function measureLetter(element) {
   const y = offsetY + top / scale;
   // Align internal cuts to physical pixels, including a fractional glyph origin.
   const cut = (fraction) => Math.round((y + height * fraction) * scale) / scale - y;
-  const glyphs = halfFilledGlyphs(data, canvas.width, left, top, right, bottom);
-  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), ...glyphs };
+  const glyph = halfFilledGlyph(data, canvas.width, left, top, right, bottom);
+  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), glyph };
 }
 
 
 // Reuse the rasterized font outline, filling only the space between the two
 // strokes of the o. Its asymmetric contour and varying stroke weight survive.
-function halfFilledGlyphs(source, sourceWidth, left, top, right, bottom) {
+function halfFilledGlyph(source, sourceWidth, left, top, right, bottom) {
   const width = right - left;
   const height = bottom - top;
   const canvas = document.createElement('canvas');
@@ -69,7 +69,6 @@ function halfFilledGlyphs(source, sourceWidth, left, top, right, bottom) {
   canvas.height = height;
   const context = canvas.getContext('2d');
   const normal = context.createImageData(width, height);
-  const inverted = context.createImageData(width, height);
 
   for (let y = 0; y < height; y += 1) {
     const alphaAt = x => source[((y + top) * sourceWidth + x + left) * 4 + 3];
@@ -87,11 +86,8 @@ function halfFilledGlyphs(source, sourceWidth, left, top, right, bottom) {
       const inside = x > firstStroke && x < lastStroke;
       const leftCoverage = Math.min(1, Math.max(0, width / 2 - x));
       normal.data.set([255, 255, 255, inside ? alpha + (255 - alpha) * leftCoverage : alpha], index);
-      inverted.data.set([255, 255, 255, inside ? alpha + (255 - alpha) * (1 - leftCoverage) : alpha], index);
     }
   }
   context.putImageData(normal, 0, 0);
-  const glyph = canvas.toDataURL();
-  context.putImageData(inverted, 0, 0);
-  return { glyph, invertedGlyph: canvas.toDataURL() };
+  return canvas.toDataURL();
 }

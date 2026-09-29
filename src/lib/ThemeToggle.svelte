@@ -75,7 +75,7 @@
 
 {#if bounds}
 <button
-  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}'); --inverted-glyph: url('{bounds.invertedGlyph}')"
+  style="left: {bounds.x}px; top: {bounds.y}px; width: {bounds.width}px; height: {bounds.height}px; --cut-top: {bounds.cutTop}px; --cut-bottom: {bounds.cutBottom}px; --glyph: url('{bounds.glyph}')"
   type="button"
   aria-label={dark ? 'Switch to light mode' : 'Switch to dark mode'}
   on:click={toggle}
@@ -129,9 +129,6 @@
   .enter .middle { transform: translateX(-4px); }
   .fire .middle { transform: translateX(8px); }
   .fire .middle, .recover .middle { transition-duration: 60ms; }
-  .fire .glyph {
-    background-image: var(--inverted-glyph);
-  }
   @media (prefers-reduced-motion: reduce) {
     .middle { transition: none; }
     .enter .middle, .fire .middle { transform: none; }
