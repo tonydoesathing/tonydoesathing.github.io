@@ -26,7 +26,7 @@ Install Node 22.13 or later (see `.nvmrc`), then run `npm install`. The dev cont
 
 - **Unit** (`tests/unit`, Vitest): the pure helpers.
 - **End to end** (`tests/e2e`, Playwright): Chromium, Firefox and WebKit, against a Vite server it starts on port 5174. It covers edge contact at DPR 1, 1.5 and 2, toggle seams, wrapping, hit areas, navigation, link motion, reduced motion, theme persistence, keyboard use, console warnings, bar progress across resizes, and the plain-text fallback when canvas reads fail or forced colours are on. Outside the dev container, run `npx playwright install` first.
-- **Visual** (`@visual` tests): Chromium screenshots, with the bars hidden, compared against the baselines in `tests/e2e/visual.spec.js-snapshots`. The baselines are Linux Chromium renders, so run them in the dev container; CI skips them. After an intended visual change, review the diff, then run `npx playwright test visual --update-snapshots`.
+- **Visual** (`@visual` tests): Chromium screenshots, with the bars hidden, compared against the baselines in `tests/e2e/visual.spec.js-snapshots`. The baselines are Linux Chromium renders, so run them in the dev container. After an intended visual change, review the diff, then run `npx playwright test visual --update-snapshots`.
 
 These still need a person:
 
@@ -36,7 +36,7 @@ These still need a person:
 
 ## Deployment
 
-Every push to `master` runs `.github/workflows/deploy.yml`: check, lint, unit and end-to-end tests (without `@visual`), build, then deploy `dist/` to GitHub Pages. In the repository’s Pages settings, set **Source** to **GitHub Actions**.
+Every push to `master` runs `.github/workflows/deploy.yml`, which builds the site and deploys `dist/` to GitHub Pages. It runs no checks or tests, so run `npm run check`, `npm run lint` and `npm test` before pushing. In the repository’s Pages settings, set **Source** to **GitHub Actions**.
 
 ## How it works
 
