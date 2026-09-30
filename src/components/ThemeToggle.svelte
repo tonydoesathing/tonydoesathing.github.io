@@ -1,5 +1,4 @@
-<!-- The theme button over the name's last "o": its sliced glyph and motion.
-     DESIGN.md: "Theme control: appearance and motion". -->
+<!-- The theme button over the name's last "o": its sliced glyph and motion. -->
 <script>
   /** @import { letterBox, themeGlyph } from './themeGlyph.js' */
   import { onMount } from 'svelte';

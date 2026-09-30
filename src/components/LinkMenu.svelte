@@ -1,5 +1,4 @@
-<!-- The staggered link menu, fitted to its rendered words.
-     DESIGN.md: "Visual style and composition", "Link hitboxes". -->
+<!-- The staggered link menu, fitted to its rendered words. -->
 <script>
   import MenuLink from './MenuLink.svelte';
   import { fitWords } from '../lib/fitWords.js';

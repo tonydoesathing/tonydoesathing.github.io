@@ -1,5 +1,4 @@
 // The page's words. index.html repeats them in <noscript>; keep both in sync.
-// DESIGN.md: "Purpose and content".
 
 export const NAME = { first: 'Tony', last: 'Mastromarino' };
 

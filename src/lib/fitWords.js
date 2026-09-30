@@ -1,6 +1,4 @@
 // Fits each menu link to its rendered word: overlay, edge, underline and hit area.
-// DESIGN.md: "Link hitboxes", "Adopted link motion" and
-// "Responsive wrapping and exact edge alignment".
 
 import { rasterizeText, viewportBox } from './rasterizeText.js';
 import { inkBounds } from './inkBounds.js';

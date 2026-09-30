@@ -14,9 +14,6 @@ export default defineConfig({
     viewport: { width: 1440, height: 900 },
     trace: 'retain-on-failure',
   },
-  expect: {
-    toHaveScreenshot: { maxDiffPixelRatio: 0.002 },
-  },
   projects: ['chromium', 'firefox', 'webkit'].map(browserName => ({
     name: browserName,
     use: { browserName },

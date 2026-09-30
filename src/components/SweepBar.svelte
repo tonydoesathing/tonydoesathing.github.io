@@ -1,5 +1,5 @@
 <!-- One background bar, sweeping right to left with new random values each
-     pass. DESIGN.md: "Background bars and inversion". -->
+     pass. -->
 <script>
   import { onMount, tick } from 'svelte';
 

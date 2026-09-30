@@ -1,5 +1,4 @@
 // Cropped ink images that stand in for HTML text, optionally pinned to an edge.
-// DESIGN.md: "Responsive wrapping and exact edge alignment".
 
 import { viewportBox } from './rasterizeText.js';
 import { ALPHA, inkBounds } from './inkBounds.js';

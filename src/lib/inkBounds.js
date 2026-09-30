@@ -1,5 +1,5 @@
 // Finds a raster's visible ink: the measurement behind alignment, hit areas and
-// the toggle glyph. DESIGN.md: "Responsive wrapping and exact edge alignment".
+// the toggle glyph.
 
 /** Alpha levels (0–255) at which a raster pixel counts as ink. */
 export const ALPHA = {

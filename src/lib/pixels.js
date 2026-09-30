@@ -1,6 +1,5 @@
 // Device-pixel helpers. Snapping CSS lengths to the physical pixel grid keeps
 // raster overlays crisp and edges flush at fractional pixel ratios.
-// DESIGN.md: "Responsive wrapping and exact edge alignment".
 
 /** @typedef {(css: number, scale?: number) => number} Snap */
 

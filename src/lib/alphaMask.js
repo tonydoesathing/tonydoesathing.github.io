@@ -1,5 +1,4 @@
 // Copies raster ink to white-on-transparent canvases, so overlays invert like text.
-// DESIGN.md: "Background bars and inversion".
 
 /** @typedef {import('./rasterizeText.js').Raster} Raster */
 

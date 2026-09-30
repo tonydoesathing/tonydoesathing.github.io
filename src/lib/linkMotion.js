@@ -1,5 +1,4 @@
 // Sequences a link's underline motion so every phase runs to completion.
-// DESIGN.md: "Adopted link motion".
 
 /**
  * How long each phase of a link's underline motion lasts, in milliseconds.

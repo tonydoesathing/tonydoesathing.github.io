@@ -1,5 +1,4 @@
 // Draws DOM text on a canvas as the page renders it, so its ink can be measured.
-// DESIGN.md: "Responsive wrapping and exact edge alignment".
 
 import { dpr, snapDown } from './pixels.js';
 import { alphaAt } from './alphaMask.js';

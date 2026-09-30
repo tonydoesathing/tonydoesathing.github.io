@@ -1,7 +1,6 @@
 // The light/dark theme: a saved choice wins, otherwise the system preference.
 // index.html repeats the key, values, resolution and apply() in its pre-paint
-// script; keep the two in sync. DESIGN.md: "Theme selection, persistence, and
-// restoration".
+// script; keep the two in sync.
 
 export const STORAGE_KEY = 'theme';
 export const THEMES = ['light', 'dark'];

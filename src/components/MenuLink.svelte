@@ -1,5 +1,5 @@
 <!-- One menu link: a real anchor with its ink overlay, underline box and hit
-     area. DESIGN.md: "Adopted link motion", "Link hitboxes". -->
+     area. -->
 <script>
   import { onDestroy } from 'svelte';
   import Baseline from './Baseline.svelte';
