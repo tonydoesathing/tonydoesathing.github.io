@@ -155,3 +155,20 @@ for (const [layout, viewport] of Object.entries({ desktop, portrait })) {
     await page.mouse.up();
   });
 }
+
+test('the menu takes pointer input only on its words', async ({ page }) => {
+  await load(page);
+  // Points inside the navigation's box that hit it, or a part of it, outside any link.
+  const stray = await page.getByRole('navigation').evaluate(nav => {
+    const { left, top, right, bottom } = nav.getBoundingClientRect();
+    let count = 0;
+    for (let y = Math.ceil(top); y < bottom; y += 1) {
+      for (let x = Math.ceil(left); x < right; x += 1) {
+        const hit = document.elementFromPoint(x, y);
+        if (nav.contains(hit) && !hit.closest('a')) count += 1;
+      }
+    }
+    return count;
+  });
+  expect(stray).toBe(0);
+});

@@ -204,11 +204,12 @@ export async function recordMotion(locator) {
     });
 }
 
-// Collects console errors and uncaught exceptions for the page's lifetime.
-export function watchErrors(page) {
+// Collects console errors and warnings, and uncaught exceptions, for the
+// page's lifetime.
+export function watchConsole(page) {
   const errors = [];
   page.on('console', message => {
-    if (message.type() === 'error') errors.push(message.text());
+    if (['error', 'warning'].includes(message.type())) errors.push(message.text());
   });
   page.on('pageerror', error => errors.push(error.message));
   return errors;

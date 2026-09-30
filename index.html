@@ -4,12 +4,14 @@
     <meta charset="UTF-8" />
     <script>
       // Apply a saved choice, or the system preference, before the first paint.
-      // Mirrors STORAGE_KEY, THEMES and resolveTheme in src/lib/theme.svelte.js.
+      // color-scheme paints the right background before any stylesheet loads.
+      // Mirrors STORAGE_KEY, THEMES, resolveTheme and apply in src/lib/theme.svelte.js.
       let savedTheme;
       try {
         savedTheme = localStorage.getItem('theme');
       } catch {}
-      document.documentElement.dataset.theme =
+      const root = document.documentElement;
+      root.dataset.theme = root.style.colorScheme =
         savedTheme === 'light' || savedTheme === 'dark'
           ? savedTheme
           : window.matchMedia('(prefers-color-scheme: dark)').matches

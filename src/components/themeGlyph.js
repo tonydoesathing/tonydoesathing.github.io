@@ -36,6 +36,17 @@ export function themeGlyph(raster) {
   };
 }
 
+/**
+ * The toggle's place when the letter can't be measured: the letter's DOM box,
+ * with no artwork, so the button covers the visible text.
+ *
+ * @param {Element} letter
+ */
+export function letterBox(letter) {
+  const { left, top, width, height } = letter.getBoundingClientRect();
+  return { x: left, y: top, width, height };
+}
+
 // Reuse the rasterized font outline, filling only the space between the two
 // strokes of the o. Its asymmetric contour and varying stroke weight survive.
 function halfFilledGlyph(raster, ink) {

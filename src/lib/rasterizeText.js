@@ -1,4 +1,5 @@
 import { dpr, snapDown } from './pixels.js';
+import { alphaAt } from './alphaMask.js';
 
 const TEXT_RENDERING = {
   auto: 'auto',
@@ -40,10 +41,11 @@ export function viewportBox({ scale, offsetX, offsetY }, { left, top, right, bot
 /**
  * Renders a text node at its on-screen position and baseline, at device
  * resolution, so the theme glyph and link hit regions match the loaded font.
- * `baselineY` is the text's baseline in viewport CSS pixels.
+ * `baselineY` is the text's baseline in viewport CSS pixels. Null if the
+ * canvas can't be read back faithfully, as when anti-fingerprinting blocks it.
  *
  * @param {{ text: Text, baselineY: number }} target
- * @returns {Raster}
+ * @returns {Raster | null}
  */
 export function rasterizeText({ text, baselineY }) {
   const range = document.createRange();
@@ -57,6 +59,7 @@ export function rasterizeText({ text, baselineY }) {
   canvas.width = Math.ceil((rect.width + 2 * padding) * scale);
   canvas.height = Math.ceil(size * 3 * scale);
   const context = canvas.getContext('2d', { willReadFrequently: true });
+  if (!context) return null;
   context.scale(scale, scale);
   // Computed CSS keywords can be lowercase; canvas enums are case-sensitive.
   context.textRendering = TEXT_RENDERING[style.textRendering.toLowerCase()] || 'auto';
@@ -74,5 +77,26 @@ export function rasterizeText({ text, baselineY }) {
   const offsetY = snapDown(baselineY - padding, scale);
   context.fillText(text.data, rect.left - offsetX, baselineY - offsetY);
   const image = context.getImageData(0, 0, canvas.width, canvas.height);
-  return { data: image.data, width: image.width, height: image.height, scale, offsetX, offsetY };
+  const raster = {
+    data: image.data,
+    width: image.width,
+    height: image.height,
+    scale,
+    offsetX,
+    offsetY,
+  };
+  return hasBlankBorder(raster) ? raster : null;
+}
+
+// The text is drawn inside a blank margin, so ink on the raster's border means
+// the read was altered (noised or filled) and its ink can't be trusted.
+function hasBlankBorder(raster) {
+  const { width, height } = raster;
+  for (let x = 0; x < width; x += 1) {
+    if (alphaAt(raster, x, 0) || alphaAt(raster, x, height - 1)) return false;
+  }
+  for (let y = 0; y < height; y += 1) {
+    if (alphaAt(raster, 0, y) || alphaAt(raster, width - 1, y)) return false;
+  }
+  return true;
 }

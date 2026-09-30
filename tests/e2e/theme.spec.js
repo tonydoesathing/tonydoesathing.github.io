@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { capture, changedAbove, hideBars, load, settle, tabTo, watchErrors } from './helpers.js';
+import { capture, changedAbove, hideBars, load, settle, tabTo, watchConsole } from './helpers.js';
 
 const toggle = page => page.getByRole('button');
 const saved = page => page.evaluate(() => localStorage.getItem('theme'));
@@ -69,7 +69,7 @@ test('ignores an invalid saved value', async ({ page }) => {
 });
 
 test('still toggles when storage is blocked', async ({ page }) => {
-  const errors = watchErrors(page);
+  const errors = watchConsole(page);
   await page.addInitScript(() => {
     Object.defineProperty(window, 'localStorage', {
       get() {

@@ -28,6 +28,16 @@
     font-weight: bold;
     font-size: var(--link-size);
     line-height: calc(var(--link-size) * 47 / 64);
+    /* Only the words take pointer input, not the space beside them. */
+    pointer-events: none;
+  }
+
+  /* Forced colours paint a backplate over each line box, which would cover
+     the previous word's glyphs where the tight lines overlap them. */
+  @media (forced-colors: active) {
+    .menu {
+      line-height: normal;
+    }
   }
 
   @media screen and (orientation: portrait) {

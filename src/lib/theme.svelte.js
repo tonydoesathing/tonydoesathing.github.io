@@ -1,6 +1,6 @@
 // The light/dark theme: a saved choice wins, otherwise the system preference.
-// index.html repeats the key, values and resolution in its pre-paint script;
-// keep the two in sync.
+// index.html repeats the key, values, resolution and apply() in its pre-paint
+// script; keep the two in sync.
 
 export const STORAGE_KEY = 'theme';
 export const THEMES = ['light', 'dark'];
@@ -31,8 +31,11 @@ export const theme = {
   },
 };
 
+// color-scheme is set here rather than in CSS so that the pre-paint script
+// can set it before any stylesheet loads.
 function apply() {
-  document.documentElement.dataset.theme = theme.current;
+  const root = document.documentElement;
+  root.dataset.theme = root.style.colorScheme = theme.current;
 }
 
 /**

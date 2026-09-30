@@ -1,10 +1,11 @@
 <script>
-  /** @import { themeGlyph } from './themeGlyph.js' */
+  /** @import { letterBox, themeGlyph } from './themeGlyph.js' */
   import { onMount } from 'svelte';
   import { syncTheme, theme } from '../lib/theme.svelte.js';
 
-  // The artwork, positioned over the letter it replaces; null hides the button.
-  /** @type {{ glyph: ReturnType<typeof themeGlyph> }} */
+  // The button's box over the letter it replaces, with the artwork (source,
+  // scale and cuts) once the letter is measured; null hides the button.
+  /** @type {{ glyph: ReturnType<typeof themeGlyph> | ReturnType<typeof letterBox> }} */
   let { glyph } = $props();
 
   onMount(syncTheme);
@@ -12,7 +13,7 @@
   // The glyph's three slices, as device rows [from, to). Each is a canvas the
   // glyph's size showing only its own rows, so they meet without seams.
   const slices = $derived.by(() => {
-    if (!glyph) return [];
+    if (!glyph || !('source' in glyph)) return [];
     const [top, bottom] = glyph.cuts;
     return [
       { name: 'top', from: 0, to: top },
@@ -81,7 +82,7 @@
     onkeyup={release}
     onblur={leave}
   >
-    <span class="art {motion}" aria-hidden="true">
+    <span class="art raster {motion}" aria-hidden="true">
       {#each slices as { name, from, to } (name)}
         <canvas
           class={name}

@@ -2,7 +2,7 @@ import { rasterizeText, viewportBox } from './rasterizeText.js';
 import { inkBounds } from './inkBounds.js';
 import { edgeInk, showInk } from './edgeText.js';
 import { onLayoutChange } from './onLayoutChange.js';
-import { snap, snapDown, snapUp } from './pixels.js';
+import { dpr, snap, snapDown, snapUp } from './pixels.js';
 
 /** @typedef {{ left: number, top: number, right: number, bottom: number }} Box */
 
@@ -81,22 +81,24 @@ export function underlineGeometry({ baselineY, fontSize, linkTop, linkWidth, sca
 function measure({ link, text, baseline, alignEdge }) {
   const baselineY = baseline.getBoundingClientRect().top;
   const rect = link.getBoundingClientRect();
+  const scale = dpr();
   const raster = rasterizeText({ text, baselineY });
-  const bounds = inkBounds(raster);
+  const bounds = raster && inkBounds(raster);
+  // Unmeasured, the word stays plain text with the link's own hit box.
   const inkBox = bounds && viewportBox(raster, bounds);
   return {
     rect,
     // Puts the first inked column at x = 0.
-    shift: alignEdge === 'left' ? inkBox && -inkBox.left : null,
-    ink: edgeInk(raster, alignEdge),
+    shift: alignEdge === 'left' && inkBox ? -inkBox.left : null,
+    ink: inkBox && edgeInk(raster, alignEdge),
     underline: underlineGeometry({
       baselineY,
       fontSize: parseFloat(getComputedStyle(link).fontSize),
       linkTop: rect.top,
       linkWidth: rect.width,
-      scale: raster.scale,
+      scale,
     }),
-    hitBox: inkBox && hitTarget(inkBox, raster.scale),
+    hitBox: inkBox && hitTarget(inkBox, scale),
   };
 }
 
@@ -108,29 +110,30 @@ function measure({ link, text, baseline, alignEdge }) {
  */
 function apply({ link, overlay, hitArea }, { rect, shift, ink, underline, hitBox }) {
   if (shift !== null) link.style.transform = `translateX(${shift}px)`;
-  if (ink) {
-    // A pinned overlay is placed against the link as shifted.
-    const origin = { left: rect.left + (shift ?? 0), top: rect.top };
-    showInk(overlay, ink, origin);
-    link.style.color = 'transparent';
-    // The pressed box is sized from the visible ink, not the hit area.
-    link.style.setProperty('--ink-top', `${ink.top - origin.top}px`);
-    link.style.setProperty('--ink-height', `${ink.height}px`);
-  }
+  // A pinned overlay is placed against the link as shifted.
+  const origin = { left: rect.left + (shift ?? 0), top: rect.top };
+  if (ink) showInk(overlay, ink, origin);
+  overlay.hidden = !ink;
+  link.style.color = ink ? 'transparent' : '';
+  // The pressed box is sized from the visible ink, not the hit area, or
+  // from the link's box when there's no measured ink.
+  link.style.setProperty('--ink-top', `${ink ? ink.top - origin.top : 0}px`);
+  link.style.setProperty('--ink-height', `${ink ? ink.height : rect.height}px`);
   link.style.setProperty('--underline-top', `${underline.top}px`);
   link.style.setProperty('--underline-width', `${underline.width}px`);
   link.style.setProperty('--underline-height', `${underline.height}px`);
   if (hitBox) {
-    // The hit area takes over pointer input, so letter counters and the
-    // spaces between letters stay clickable.
     Object.assign(hitArea.style, {
       left: `${hitBox.left - rect.left}px`,
       top: `${hitBox.top - rect.top}px`,
       width: `${hitBox.right - hitBox.left}px`,
       height: `${hitBox.bottom - hitBox.top}px`,
     });
-    link.style.pointerEvents = 'none';
   }
+  // The hit area takes over pointer input, so letter counters and the spaces
+  // between letters stay clickable. Without one, the link keeps its own.
+  hitArea.hidden = !hitBox;
+  link.style.pointerEvents = hitBox ? 'none' : '';
 }
 
 /**

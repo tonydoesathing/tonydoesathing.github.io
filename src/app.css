@@ -37,6 +37,8 @@
   --focus-ring: 2px solid #fff;
 
   background-color: var(--background);
+  /* For no-JS visits. The theme scripts set it inline with data-theme, so it
+     is right before this stylesheet loads. */
   color-scheme: light;
 
   font-synthesis: none;
@@ -49,7 +51,6 @@
 :root[data-theme='dark'] {
   --primary: #fff;
   --background: #000;
-  color-scheme: dark;
 }
 
 /* This margin is part of the original composition. */
@@ -67,4 +68,21 @@ a {
 .inverts {
   color: #fff;
   mix-blend-mode: difference;
+}
+
+/* Forced colours repaint text in system colours, with backplates that defeat
+   the inversion, but leave canvas-drawn stand-ins for text as they are. Show
+   the plain text instead, undoing the inline transparent colour that hid it
+   behind them (not every browser overrides that in forced colours). */
+@media (forced-colors: active) {
+  .inverts {
+    mix-blend-mode: normal;
+  }
+  .raster {
+    display: none;
+  }
+  h1 span,
+  nav a {
+    color: revert !important;
+  }
 }

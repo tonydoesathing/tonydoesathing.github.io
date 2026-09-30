@@ -14,11 +14,11 @@ import { viewportRightEdge } from './pixels.js';
 
 const baselineY = (/** @type {TextTarget} */ { baseline }) => baseline.getBoundingClientRect().top;
 
-/** A text's raster and the viewport x of its ink's right edge, or null. */
+/** A text's raster and the viewport x of its ink's right edge, or null if unmeasurable. */
 function measure(/** @type {TextTarget} */ target) {
   const raster = rasterizeText({ text: target.text, baselineY: baselineY(target) });
-  const ink = inkBounds(raster);
-  return { raster, right: ink && viewportBox(raster, ink).right };
+  const ink = raster && inkBounds(raster);
+  return ink && { raster, right: viewportBox(raster, ink).right };
 }
 
 /**
@@ -26,7 +26,7 @@ function measure(/** @type {TextTarget} */ target) {
  * letter's always, and the first name's when it wraps onto its own line, where
  * a raster overlay replaces its text. Translates only, preserving wrapping and
  * vertical layout. Realigns whenever layout changes, then calls `onAlign`
- * with the last letter's raster as aligned, or null if it has no ink.
+ * with the last letter's raster as aligned, or null if it couldn't be measured.
  *
  * @param {HTMLElement} heading
  * @param {object} parts
@@ -50,7 +50,8 @@ export function alignHeading(heading, { firstName, lastLetter }, onAlign) {
     reset();
     const viewportRight = viewportRightEdge();
     const last = measure(lastLetter);
-    if (last.right === null) return null;
+    // Unmeasured, the heading stays plain, unaligned text.
+    if (!last) return null;
     const shift = viewportRight - last.right;
     // The first name needs its own alignment once it wraps onto its own line.
     const wrapped = Math.abs(baselineY(firstName) - baselineY(lastLetter)) > 1;

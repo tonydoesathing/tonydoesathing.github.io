@@ -1,7 +1,7 @@
 <script>
   import Baseline from './Baseline.svelte';
   import ThemeToggle from './ThemeToggle.svelte';
-  import { themeGlyph } from './themeGlyph.js';
+  import { letterBox, themeGlyph } from './themeGlyph.js';
   import { alignHeading } from '../lib/alignHeading.js';
   import { NAME } from '../content.js';
 
@@ -15,6 +15,7 @@
   /**
    * The theme toggle's artwork, drawn from the aligned last letter. Drawn
    * here so it comes from the same raster as the alignment it depends on.
+   * Without a raster, the toggle covers the letter's text instead.
    */
   let toggleGlyph = $state(null);
 
@@ -34,7 +35,7 @@
         },
         lastLetter: { text: lastText, baseline: lastLetter.baseline },
       },
-      raster => (toggleGlyph = raster && themeGlyph(raster)),
+      raster => (toggleGlyph = (raster && themeGlyph(raster)) ?? letterBox(lastLetter.span)),
     );
   }
 </script>
@@ -45,14 +46,14 @@
 <h1 class="inverts" {@attach align}>
   <span class="first-name" bind:this={firstName.span}
     >{NAME.first}<Baseline bind:marker={firstName.baseline} /><span
-      class="overlay"
+      class="overlay raster"
       bind:this={firstName.overlay}
       aria-hidden="true"
     ></span></span
   >
   {NAME.last.slice(0, -1)}<span
     bind:this={lastLetter.span}
-    style:color={toggleGlyph ? 'transparent' : null}
+    style:color={toggleGlyph?.source ? 'transparent' : null}
     >{NAME.last.at(-1)}<Baseline bind:marker={lastLetter.baseline} /></span
   >
 </h1>

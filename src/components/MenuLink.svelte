@@ -58,7 +58,7 @@
   onblur={motion.leave}
   onclick={motion.release}
   >{label}<Baseline bind:marker={parts.baseline} /><span
-    class="overlay"
+    class="overlay raster"
     bind:this={parts.overlay}
     aria-hidden="true"
   ></span><span class="bar inverts" aria-hidden="true"></span><span
@@ -79,6 +79,7 @@
     width: max-content;
     color: inherit;
     text-decoration: none;
+    pointer-events: auto;
   }
 
   a:focus-visible {

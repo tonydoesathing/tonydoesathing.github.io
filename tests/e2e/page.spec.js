@@ -1,5 +1,5 @@
 import { expect, test } from '@playwright/test';
-import { link, load, watchErrors } from './helpers.js';
+import { link, load, watchConsole } from './helpers.js';
 
 test('exposes the heading, primary navigation and theme toggle', async ({ page }) => {
   await load(page);
@@ -26,8 +26,8 @@ test('exposes the heading, primary navigation and theme toggle', async ({ page }
   await expect(page.getByRole('button')).toHaveAccessibleName('Switch to light mode');
 });
 
-test('logs no console errors', async ({ page }) => {
-  const errors = watchErrors(page);
+test('logs no console errors or warnings', async ({ page }) => {
+  const errors = watchConsole(page);
   await load(page);
   for (const name of ['github', 'resume', 'email']) await link(page, name).hover();
   await page.getByRole('button').click();
