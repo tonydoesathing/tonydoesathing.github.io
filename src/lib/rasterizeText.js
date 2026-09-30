@@ -40,13 +40,12 @@ export function viewportBox({ scale, offsetX, offsetY }, { left, top, right, bot
 /**
  * Renders a text node at its on-screen position and baseline, at device
  * resolution, so the theme glyph and link hit regions match the loaded font.
- * `baselineY` is the text's baseline in viewport CSS pixels. `hitSlop` strokes
- * the outline, growing the ink by that many CSS pixels.
+ * `baselineY` is the text's baseline in viewport CSS pixels.
  *
- * @param {{ text: Text, baselineY: number, hitSlop?: number }} target
+ * @param {{ text: Text, baselineY: number }} target
  * @returns {Raster}
  */
-export function rasterizeText({ text, baselineY, hitSlop = 0 }) {
+export function rasterizeText({ text, baselineY }) {
   const range = document.createRange();
   range.selectNodeContents(text);
   const rect = range.getBoundingClientRect();
@@ -73,10 +72,6 @@ export function rasterizeText({ text, baselineY, hitSlop = 0 }) {
   // pixel at fractional ratios, and the origin must stay on the device grid.
   const offsetX = snapDown(rect.left - padding, scale);
   const offsetY = snapDown(baselineY - padding, scale);
-  if (hitSlop) {
-    context.lineWidth = hitSlop * 2;
-    context.strokeText(text.data, rect.left - offsetX, baselineY - offsetY);
-  }
   context.fillText(text.data, rect.left - offsetX, baselineY - offsetY);
   const image = context.getImageData(0, 0, canvas.width, canvas.height);
   return { data: image.data, width: image.width, height: image.height, scale, offsetX, offsetY };

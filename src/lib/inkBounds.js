@@ -2,8 +2,6 @@
 export const ALPHA = {
   /** Any coverage: the glyph's full antialiased extent. */
   ANY: 1,
-  /** Hit targets: drops the faintest fringe of the hit-slop stroke. */
-  HIT: 32,
   /** At least half covered: inside the outline, to find the strokes of the o. */
   STROKE: 128,
   /** Fully covered (254 absorbs rounding): the solid stroke, not its fringe. */

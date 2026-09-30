@@ -1,10 +1,9 @@
 import { rasterizeText, viewportBox } from './rasterizeText.js';
-import { ALPHA, inkBounds } from './inkBounds.js';
+import { inkBounds } from './inkBounds.js';
 import { edgeInk, showInk } from './edgeText.js';
 import { onLayoutChange } from './onLayoutChange.js';
-import { dpr, snap } from './pixels.js';
+import { snap, snapDown, snapUp } from './pixels.js';
 
-/** @typedef {import('./rasterizeText.js').Raster} Raster */
 /** @typedef {{ left: number, top: number, right: number, bottom: number }} Box */
 
 /**
@@ -19,8 +18,25 @@ import { dpr, snap } from './pixels.js';
  * @property {'left'} [alignEdge] Pins the word's ink to that viewport edge.
  */
 
-// Hit targets reach this many CSS pixels beyond the ink.
+// Hit targets reach at least this many CSS pixels beyond the ink.
 const HIT_SLOP = 1;
+
+/**
+ * A word's hit target: its ink box grown by HIT_SLOP and rounded outwards to
+ * device pixels.
+ *
+ * @param {Box} ink Viewport CSS pixels.
+ * @param {number} scale
+ * @returns {Box}
+ */
+function hitTarget({ left, top, right, bottom }, scale) {
+  return {
+    left: snapDown(left - HIT_SLOP, scale),
+    top: snapDown(top - HIT_SLOP, scale),
+    right: snapUp(right + HIT_SLOP, scale),
+    bottom: snapUp(bottom + HIT_SLOP, scale),
+  };
+}
 
 /**
  * Splits the vertical overlap between consecutive boxes (top to bottom)
@@ -55,12 +71,6 @@ export function underlineGeometry({ baselineY, fontSize, linkTop, linkWidth, sca
   };
 }
 
-/** The horizontal shift that puts a raster's first inked column at x = 0. */
-function leftEdgeShift(/** @type {Raster} */ raster) {
-  const ink = inkBounds(raster);
-  return ink && -viewportBox(raster, ink).left;
-}
-
 /**
  * Reads everything the layout needs from one word. Called with the link
  * untranslated; shifted words move by whole device pixels, so their rasters
@@ -72,20 +82,21 @@ function measure({ link, text, baseline, alignEdge }) {
   const baselineY = baseline.getBoundingClientRect().top;
   const rect = link.getBoundingClientRect();
   const raster = rasterizeText({ text, baselineY });
-  const hitRaster = rasterizeText({ text, baselineY, hitSlop: HIT_SLOP });
-  const hitInk = inkBounds(hitRaster, ALPHA.HIT);
+  const bounds = inkBounds(raster);
+  const inkBox = bounds && viewportBox(raster, bounds);
   return {
     rect,
-    shift: alignEdge === 'left' ? leftEdgeShift(raster) : null,
+    // Puts the first inked column at x = 0.
+    shift: alignEdge === 'left' ? inkBox && -inkBox.left : null,
     ink: edgeInk(raster, alignEdge),
     underline: underlineGeometry({
       baselineY,
       fontSize: parseFloat(getComputedStyle(link).fontSize),
       linkTop: rect.top,
       linkWidth: rect.width,
-      scale: dpr(),
+      scale: raster.scale,
     }),
-    hitBox: hitInk && viewportBox(hitRaster, hitInk),
+    hitBox: inkBox && hitTarget(inkBox, raster.scale),
   };
 }
 

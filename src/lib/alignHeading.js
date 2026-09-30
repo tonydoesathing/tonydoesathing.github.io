@@ -4,6 +4,8 @@ import { edgeInk, showInk } from './edgeText.js';
 import { onLayoutChange } from './onLayoutChange.js';
 import { viewportRightEdge } from './pixels.js';
 
+/** @typedef {import('./rasterizeText.js').Raster} Raster */
+
 /**
  * Text to measure: its text node and a zero-size marker on its baseline.
  *
@@ -12,23 +14,25 @@ import { viewportRightEdge } from './pixels.js';
 
 const baselineY = (/** @type {TextTarget} */ { baseline }) => baseline.getBoundingClientRect().top;
 
-function rightEdge(/** @type {TextTarget} */ target) {
+/** A text's raster and the viewport x of its ink's right edge, or null. */
+function measure(/** @type {TextTarget} */ target) {
   const raster = rasterizeText({ text: target.text, baselineY: baselineY(target) });
   const ink = inkBounds(raster);
-  return ink ? viewportBox(raster, ink).right : null;
+  return { raster, right: ink && viewportBox(raster, ink).right };
 }
 
 /**
  * Keeps the heading's ink flush with the right viewport edge: the last
  * letter's always, and the first name's when it wraps onto its own line, where
  * a raster overlay replaces its text. Translates only, preserving wrapping and
- * vertical layout. Realigns whenever layout changes, then calls `onAlign`.
+ * vertical layout. Realigns whenever layout changes, then calls `onAlign`
+ * with the last letter's raster as aligned, or null if it has no ink.
  *
  * @param {HTMLElement} heading
  * @param {object} parts
  * @param {TextTarget & { element: HTMLElement, overlay: HTMLElement }} parts.firstName
  * @param {TextTarget} parts.lastLetter
- * @param {() => void} onAlign
+ * @param {(lastLetter: Raster | null) => void} onAlign
  * @returns {() => void} Stops aligning and undoes it.
  */
 export function alignHeading(heading, { firstName, lastLetter }, onAlign) {
@@ -39,32 +43,35 @@ export function alignHeading(heading, { firstName, lastLetter }, onAlign) {
     firstName.overlay.hidden = true;
   }
 
+  // After resetting, reads everything, then writes. Alignment shifts by whole
+  // device pixels, so rasters taken before it are still exact afterwards,
+  // apart from position.
   function align() {
     reset();
     const viewportRight = viewportRightEdge();
-    const right = rightEdge(lastLetter);
-    if (right === null) return;
-    heading.style.transform = `translateX(${viewportRight - right}px)`;
-    if (Math.abs(baselineY(firstName) - baselineY(lastLetter)) <= 1) return;
+    const last = measure(lastLetter);
+    if (last.right === null) return null;
+    const shift = viewportRight - last.right;
+    // The first name needs its own alignment once it wraps onto its own line.
+    const wrapped = Math.abs(baselineY(firstName) - baselineY(lastLetter)) > 1;
+    const first = wrapped ? measure(firstName) : null;
+    const firstInk = first && edgeInk(first.raster, 'right');
+    const firstBox = firstInk && firstName.element.getBoundingClientRect();
 
-    // The first name has wrapped onto its own line.
-    const firstRight = rightEdge(firstName);
-    if (firstRight !== null) firstName.element.style.left = `${viewportRight - firstRight}px`;
-    const raster = rasterizeText({ text: firstName.text, baselineY: baselineY(firstName) });
-    const ink = edgeInk(raster, 'right');
-    if (!ink) return;
-    showInk(firstName.overlay, ink, firstName.element.getBoundingClientRect());
-    firstName.overlay.hidden = false;
-    firstName.element.style.color = 'transparent';
+    heading.style.transform = `translateX(${shift}px)`;
+    if (firstInk) {
+      const left = viewportRight - first.right - shift;
+      firstName.element.style.left = `${left}px`;
+      // The overlay's containing block moves with the heading and the name.
+      const origin = { left: firstBox.left + shift + left, top: firstBox.top };
+      showInk(firstName.overlay, firstInk, origin);
+      firstName.overlay.hidden = false;
+      firstName.element.style.color = 'transparent';
+    }
+    return { ...last.raster, offsetX: last.raster.offsetX + shift };
   }
 
-  const stop = onLayoutChange(
-    () => {
-      align();
-      onAlign();
-    },
-    { observe: [heading] },
-  );
+  const stop = onLayoutChange(() => onAlign(align()), { observe: [heading] });
   return () => {
     stop();
     reset();

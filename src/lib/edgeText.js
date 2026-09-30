@@ -24,6 +24,9 @@ export function edgeInk(raster, side) {
     const solidInk = inkBounds(raster, ALPHA.SOLID);
     if (solidInk) ink.left = solidInk.left;
   }
+  // An image rather than a canvas element: WebKit places canvases on whole
+  // CSS pixels inside fractional or transformed boxes, which breaks edge
+  // contact at DPR 1.5 and 2.
   const canvas = alphaMask(raster, ink);
   const { left, top } = viewportBox(raster, ink);
   const width = canvas.width / raster.scale;

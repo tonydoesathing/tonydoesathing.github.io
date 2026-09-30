@@ -57,6 +57,8 @@ This is the reference for the owner’s established requirements and adopted beh
 | Portrait links | `font-size: 6vh`; line height `6vh × 47/64`; menu starts at `left: 1vh`. |
 | Page margin | Preserve the existing `8px` body margin as part of the composition. |
 
+The fonts are self-hosted in `public/fonts`: the latin-subset Forum and Roboto 400 files Google Fonts serves, with their OFL licences. Only the latin subset is included; add the matching subset file if content needs other scripts.
+
 The link offsets before optical edge alignment are `−0.9 × 13/64`, `41/64`, and `174/64` times the landscape link font size. In portrait, the first becomes `−13/64` times the link font size; the other ratios remain the same. Preserve the resulting placement rather than replacing it with a conventionally spaced menu.
 
 ### Responsive wrapping and exact edge alignment

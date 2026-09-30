@@ -1,33 +1,39 @@
-import { rasterizeText, viewportBox } from '../lib/rasterizeText.js';
+import { viewportBox } from '../lib/rasterizeText.js';
 import { ALPHA, inkBounds } from '../lib/inkBounds.js';
 import { alphaMask, alphaAt } from '../lib/alphaMask.js';
-import { snap, viewportRightEdge } from '../lib/pixels.js';
+import { snap } from '../lib/pixels.js';
+
+/** @typedef {import('../lib/rasterizeText.js').Raster} Raster */
 
 /**
  * The theme toggle's artwork, drawn from the letter it replaces: the letter's
- * visible ink, pinned to the right viewport edge, with half its interior
- * filled, and the device-pixel rows where its middle slice is cut. Null if
- * the letter has no ink to measure. Measures ink rather than the taller inline
- * text box; raster bounds also avoid WebKit's canvas text metrics including
- * the glyph's side bearings.
+ * visible ink where it's shown, with half its interior filled, as a canvas at
+ * device resolution, and the device rows where its middle slice is cut. Null
+ * if the letter has no ink. Measures ink rather than the taller inline text
+ * box; raster bounds also avoid WebKit's canvas text metrics including the
+ * glyph's side bearings.
  *
- * @param {{ text: Text, baselineY: number }} letter
+ * @param {Raster} raster The letter, as aligned.
  */
-export function themeGlyph(letter) {
-  const raster = rasterizeText(letter);
+export function themeGlyph(raster) {
   const ink = inkBounds(raster);
   if (!ink) return null;
   const { scale } = raster;
-  const width = (ink.right - ink.left) / scale;
-  const height = (ink.bottom - ink.top) / scale;
-  // The cropped bitmap has no side bearing: pin its last pixel directly. Both
-  // terms, like the raster origin, are whole device pixels, so need no snap.
-  const x = viewportRightEdge() - width;
-  const { top: y } = viewportBox(raster, ink);
+  const source = halfFilledGlyph(raster, ink);
+  // The raster origin is on the device grid, so the box is too; snapping
+  // only drops floating-point error.
+  const { left, top } = viewportBox(raster, ink);
   // Cut on device rows so the three slices meet without seams.
-  const cut = fraction => snap(height * fraction, scale);
-  const image = halfFilledGlyph(raster, ink).toDataURL();
-  return { x, y, width, height, cutTop: cut(0.35), cutBottom: cut(0.65), image };
+  const cut = fraction => Math.round(source.height * fraction);
+  return {
+    x: snap(left, scale),
+    y: snap(top, scale),
+    width: source.width / scale,
+    height: source.height / scale,
+    scale,
+    source,
+    cuts: [cut(0.35), cut(0.65)],
+  };
 }
 
 // Reuse the rasterized font outline, filling only the space between the two

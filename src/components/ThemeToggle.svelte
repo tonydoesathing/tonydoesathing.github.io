@@ -9,6 +9,27 @@
 
   onMount(syncTheme);
 
+  // The glyph's three slices, as device rows [from, to). Each is a canvas the
+  // glyph's size showing only its own rows, so they meet without seams.
+  const slices = $derived.by(() => {
+    if (!glyph) return [];
+    const [top, bottom] = glyph.cuts;
+    return [
+      { name: 'top', from: 0, to: top },
+      { name: 'middle', from: top, to: bottom },
+      { name: 'bottom', from: bottom, to: glyph.source.height },
+    ];
+  });
+
+  // Copies the slice's rows unscaled: canvases are one pixel per device pixel.
+  const drawSlice = (from, to) => canvas => {
+    const { source } = glyph;
+    canvas.width = source.width;
+    canvas.height = source.height;
+    const rows = [0, from, source.width, to - from];
+    canvas.getContext('2d').drawImage(source, ...rows, ...rows);
+  };
+
   let motion = $state('');
   let pressed = false;
 
@@ -45,7 +66,7 @@
 
 {#if glyph}
   <button
-    style="transform: translate({glyph.x}px, {glyph.y}px); width: {glyph.width}px; height: {glyph.height}px; --cut-top: {glyph.cutTop}px; --cut-bottom: {glyph.cutBottom}px; --glyph: url('{glyph.image}')"
+    style="transform: translate({glyph.x}px, {glyph.y}px); width: {glyph.width}px; height: {glyph.height}px"
     class="inverts"
     type="button"
     aria-label={theme.current === 'dark' ? 'Switch to light mode' : 'Switch to dark mode'}
@@ -61,17 +82,22 @@
     onblur={leave}
   >
     <span class="art {motion}" aria-hidden="true">
-      <span class="glyph top"></span>
-      <span class="glyph middle"></span>
-      <span class="glyph bottom"></span>
+      {#each slices as { name, from, to } (name)}
+        <canvas
+          class={name}
+          style:width="{glyph.source.width}px"
+          style:height="{glyph.source.height}px"
+          style:scale={1 / glyph.scale}
+          {@attach drawSlice(from, to)}
+        ></canvas>
+      {/each}
     </span>
   </button>
 {/if}
 
 <style>
   /* Positioned by transform, not left/top: at fractional DPRs, layout rounding
-     (Chromium) and clip-path origins (Firefox) miss the device grid and leave
-     seams at the slice cuts. */
+     (Chromium) misses the device grid and leaves seams at the slice cuts. */
   button {
     position: fixed;
     left: 0;
@@ -92,33 +118,25 @@
     inset: 0;
     pointer-events: none;
   }
-  .glyph {
+  /* Laid out at their pixel size and scaled down by the pixel ratio: WebKit
+     draws canvases on whole CSS pixels, so a fractional size is resampled. */
+  canvas {
     position: absolute;
-    inset: 0;
-    background-image: var(--glyph);
-    background-size: 100% 100%;
-    background-repeat: no-repeat;
+    left: 0;
+    top: 0;
+    transform-origin: 0 0;
   }
-  /* Cuts are snapped to device pixels to keep the three pieces seamless. */
-  .top {
-    clip-path: inset(0 0 calc(100% - var(--cut-top)) 0);
-  }
-  .middle {
-    clip-path: inset(var(--cut-top) 0 calc(100% - var(--cut-bottom)) 0);
-  }
-  .bottom {
-    clip-path: inset(var(--cut-bottom) 0 0 0);
-  }
-  /* Motion is opt-in, so reduced motion keeps the slices at rest. */
+  /* Motion is opt-in, so reduced motion keeps the slices at rest. It uses
+     translate, which applies after the canvases' scale. */
   @media (prefers-reduced-motion: no-preference) {
     .middle {
-      transition: transform 400ms linear;
+      transition: translate 400ms linear;
     }
     .enter .middle {
-      transform: translateX(-4px);
+      translate: -4px;
     }
     .fire .middle {
-      transform: translateX(8px);
+      translate: 8px;
     }
     .fire .middle,
     .recover .middle {

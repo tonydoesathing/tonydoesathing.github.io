@@ -14,7 +14,7 @@
 
   /**
    * The theme toggle's artwork, drawn from the aligned last letter. Drawn
-   * here so it's measured in the same frame as the alignment it depends on.
+   * here so it comes from the same raster as the alignment it depends on.
    */
   let toggleGlyph = $state(null);
 
@@ -34,10 +34,7 @@
         },
         lastLetter: { text: lastText, baseline: lastLetter.baseline },
       },
-      () => {
-        const baselineY = lastLetter.baseline.getBoundingClientRect().top;
-        toggleGlyph = themeGlyph({ text: lastText, baselineY });
-      },
+      raster => (toggleGlyph = raster && themeGlyph(raster)),
     );
   }
 </script>

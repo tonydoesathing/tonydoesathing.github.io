@@ -13,15 +13,21 @@ import { dpr } from './pixels.js';
 export function onLayoutChange(callback, { observe = [] } = {}) {
   let frame = 0;
   let disposed = false;
+  // True from a call until the next frame starts.
+  let justRan = false;
   const schedule = () => {
     if (disposed || frame) return;
     frame = requestAnimationFrame(() => {
       frame = 0;
       callback();
+      justRan = true;
+      requestAnimationFrame(() => (justRan = false));
     });
   };
 
-  const observer = new ResizeObserver(schedule);
+  // Resize observations are delivered after animation frame callbacks, so any
+  // in the frame of a call describe the layout it has just measured.
+  const observer = new ResizeObserver(() => justRan || schedule());
   observe.forEach(element => observer.observe(element));
   const stopObservingPixels = observePixelRatio(schedule);
   document.fonts.ready.then(schedule);
