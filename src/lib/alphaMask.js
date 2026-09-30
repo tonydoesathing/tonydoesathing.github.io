@@ -1,6 +1,16 @@
+// Copies raster ink to white-on-transparent canvases, so overlays invert like text.
+// DESIGN.md: "Background bars and inversion".
+
 /** @typedef {import('./rasterizeText.js').Raster} Raster */
 
-/** The alpha of a raster pixel. */
+/**
+ * The alpha of a raster pixel.
+ *
+ * @param {Raster} raster
+ * @param {number} x Raster pixels.
+ * @param {number} y Raster pixels.
+ * @returns {number} 0–255.
+ */
 export const alphaAt = (raster, x, y) => raster.data[(y * raster.width + x) * 4 + 3];
 
 /**

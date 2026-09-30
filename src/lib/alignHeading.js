@@ -1,3 +1,6 @@
+// Keeps the heading's ink flush with the right screen edge.
+// DESIGN.md: "Responsive wrapping and exact edge alignment".
+
 import { rasterizeText, viewportBox } from './rasterizeText.js';
 import { inkBounds } from './inkBounds.js';
 import { edgeInk, showInk } from './edgeText.js';

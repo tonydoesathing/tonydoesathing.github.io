@@ -1,3 +1,6 @@
+// Reruns measurements whenever layout can move text on the pixel grid.
+// DESIGN.md: "Accessibility, performance, and maintenance".
+
 import { dpr } from './pixels.js';
 
 /**

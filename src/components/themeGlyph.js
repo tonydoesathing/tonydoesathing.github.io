@@ -1,3 +1,6 @@
+// Draws the theme toggle's half-filled "o" from the letter it replaces.
+// DESIGN.md: "Theme control: appearance and motion".
+
 import { viewportBox } from '../lib/rasterizeText.js';
 import { ALPHA, inkBounds } from '../lib/inkBounds.js';
 import { alphaMask, alphaAt } from '../lib/alphaMask.js';

@@ -1,3 +1,6 @@
+// Finds a raster's visible ink: the measurement behind alignment, hit areas and
+// the toggle glyph. DESIGN.md: "Responsive wrapping and exact edge alignment".
+
 /** Alpha levels (0–255) at which a raster pixel counts as ink. */
 export const ALPHA = {
   /** Any coverage: the glyph's full antialiased extent. */
@@ -8,7 +11,14 @@ export const ALPHA = {
   SOLID: 254,
 };
 
-// Bounds are exclusive on the right/bottom and measured in raster pixels.
+/**
+ * The bounding box of pixels at or above `threshold` alpha, or null if none.
+ * Bounds are in raster pixels, exclusive on the right and bottom.
+ *
+ * @param {import('./rasterizeText.js').Raster} raster
+ * @param {number} [threshold] One of ALPHA.
+ * @returns {{ left: number, top: number, right: number, bottom: number } | null}
+ */
 export function inkBounds({ data, width, height }, threshold = ALPHA.ANY) {
   let left = width,
     top = height,

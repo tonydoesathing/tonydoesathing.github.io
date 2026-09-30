@@ -1,5 +1,26 @@
 # Code & design critique
 
+## Status
+
+The §11 plan is done; the review below is kept as written, so it describes the code before these changes; requirements it references in the README now live in [DESIGN.md](DESIGN.md).
+
+| §11 step | Commit |
+| --- | --- |
+| 0. Fix the two failures | `9923ad7` fix reduced motion and toggle seams |
+| 1. Safety net | `f5d57c0` add unit and end-to-end test suite |
+| 2. Toolchain | `5374ad2` upgrade toolchain and deploy with GitHub Actions |
+| 3. Shared infrastructure | `f87616a` extract shared utilities, content and theme modules |
+| 4. Restructure components | `f0ecd52` restructure components with single responsibilities |
+| 5. Performance polish | `fef42d4` speed up measurement and self-host fonts |
+| 6. Robustness | `857f304` degrade gracefully without canvas and harden edge cases |
+| 7. Docs | document architecture and move requirements to DESIGN.md (the commit that added this table) |
+
+Still open:
+
+- **Owner decisions.** Link weight (§6.5): the menu asks for bold but shows regular Roboto. Re-arming hover after a click (§2 nitpicks): hover returns only after the pointer leaves and re-enters.
+- **Word overlays still use data URLs** (§7.1). WebKit places canvases on whole CSS pixels inside fractional or transformed boxes, which breaks edge contact at DPR 1.5 and 2, so only the toggle glyph moved to canvases.
+- **Text doesn't grow with browser zoom.** Sizes are in `vh`/`vw`, so browser zoom leaves the type the same size on screen (WCAG 1.4.4). Changing that alters the composition, so it's the owner's call.
+
 A review of the requirements in [README.md](README.md), the running site, and the
 implementation in `src/` at commit `068b1aa` (branch `refinements`). The goal is to keep
 what the site looks like and does exactly as it is, while making the code a clean,

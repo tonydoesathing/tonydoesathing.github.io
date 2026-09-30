@@ -1,15 +1,27 @@
 // The light/dark theme: a saved choice wins, otherwise the system preference.
 // index.html repeats the key, values, resolution and apply() in its pre-paint
-// script; keep the two in sync.
+// script; keep the two in sync. DESIGN.md: "Theme selection, persistence, and
+// restoration".
 
 export const STORAGE_KEY = 'theme';
 export const THEMES = ['light', 'dark'];
 const SYSTEM_DARK = '(prefers-color-scheme: dark)';
 
-/** A saved value if it names a theme, otherwise null. */
+/**
+ * A saved value if it names a theme, otherwise null.
+ *
+ * @param {string | null} value
+ * @returns {string | null}
+ */
 export const validTheme = value => (THEMES.includes(value) ? value : null);
 
-/** The theme to show for a saved choice (or null) and the system preference. */
+/**
+ * The theme to show for a saved choice (or null) and the system preference.
+ *
+ * @param {string | null} saved
+ * @param {boolean} systemDark
+ * @returns {string}
+ */
 export const resolveTheme = (saved, systemDark) => saved ?? (systemDark ? 'dark' : 'light');
 
 let saved = $state(null);

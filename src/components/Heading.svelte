@@ -1,3 +1,6 @@
+<!-- The name, flush with the right edge, with the theme toggle over its last
+     letter. DESIGN.md: "Visual style and composition" and
+     "Responsive wrapping and exact edge alignment". -->
 <script>
   import Baseline from './Baseline.svelte';
   import ThemeToggle from './ThemeToggle.svelte';

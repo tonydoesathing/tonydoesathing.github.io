@@ -1,3 +1,4 @@
+<!-- The page: heading, link menu and the decorative bars behind them. -->
 <script>
   import Heading from './components/Heading.svelte';
   import LinkMenu from './components/LinkMenu.svelte';
