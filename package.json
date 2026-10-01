@@ -2,15 +2,40 @@
   "name": "tonydoesathing.github.io",
   "private": true,
   "version": "0.0.0",
+  "description": "Tony Mastromarino’s portfolio landing page, built with Svelte and Vite.",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/tonydoesathing/tonydoesathing.github.io.git"
+  },
   "type": "module",
+  "engines": {
+    "node": ">=22.13"
+  },
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "check": "svelte-check",
+    "lint": "eslint . && prettier --check .",
+    "format": "prettier --write .",
+    "test:unit": "vitest run --dir tests/unit",
+    "test:e2e": "playwright test",
+    "test": "npm run test:unit && npm run test:e2e"
   },
   "devDependencies": {
-    "@sveltejs/vite-plugin-svelte": "^1.0.1",
-    "svelte": "^3.49.0",
-    "vite": "^3.0.7"
+    "@eslint/js": "^10.0.1",
+    "@playwright/test": "1.58.2",
+    "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "eslint": "^10.11.0",
+    "eslint-plugin-svelte": "^3.23.0",
+    "globals": "^17.12.0",
+    "pngjs": "^7.0.0",
+    "prettier": "^3.9.9",
+    "prettier-plugin-svelte": "^4.1.1",
+    "svelte": "^5.57.1",
+    "svelte-check": "^4.7.6",
+    "typescript": "^6.0.3",
+    "vite": "^8.3.1",
+    "vitest": "^5.0.2"
   }
 }

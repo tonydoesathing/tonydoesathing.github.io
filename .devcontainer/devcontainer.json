@@ -1,0 +1,28 @@
+{
+  "name": "Portfolio · Svelte + browser tools",
+  "build": {
+    "dockerfile": "Dockerfile",
+    "context": "."
+  },
+  "remoteUser": "node",
+  "init": true,
+  "runArgs": ["--shm-size=1g"],
+  "mounts": [
+    "source=${localWorkspaceFolderBasename}-node-modules,target=${containerWorkspaceFolder}/node_modules,type=volume"
+  ],
+  "forwardPorts": [5173, 4173, 9323],
+  "portsAttributes": {
+    "5173": { "label": "Vite dev server", "onAutoForward": "notify" },
+    "4173": { "label": "Production preview", "onAutoForward": "notify" },
+    "9323": { "label": "Playwright report / trace viewer", "onAutoForward": "notify" }
+  },
+  "postCreateCommand": "bash .devcontainer/setup.sh",
+  "customizations": {
+    "vscode": {
+      "extensions": ["svelte.svelte-vscode", "openai.chatgpt", "anthropic.claude-code"],
+      "settings": {
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  }
+}

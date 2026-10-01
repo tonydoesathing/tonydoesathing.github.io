@@ -1,16 +1,59 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
   <head>
     <meta charset="UTF-8" />
+    <script>
+      // Apply a saved choice, or the system preference, before the first paint.
+      // color-scheme paints the right background before any stylesheet loads.
+      // Mirrors STORAGE_KEY, THEMES, resolveTheme and apply in src/lib/theme.svelte.js.
+      let savedTheme;
+      try {
+        savedTheme = localStorage.getItem('theme');
+      } catch {}
+      const root = document.documentElement;
+      root.dataset.theme = root.style.colorScheme =
+        savedTheme === 'light' || savedTheme === 'dark'
+          ? savedTheme
+          : window.matchMedia('(prefers-color-scheme: dark)').matches
+            ? 'dark'
+            : 'light';
+    </script>
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <link rel="stylesheet"
-          href="https://fonts.googleapis.com/css?family=Forum">
-    <link rel="stylesheet"
-    href="https://fonts.googleapis.com/css?family=Roboto">
+    <meta
+      name="description"
+      content="Tony Mastromarino — projects on GitHub, résumé, and contact."
+    />
+    <meta property="og:title" content="Tony Mastromarino" />
+    <meta property="og:description" content="Projects on GitHub, résumé, and contact." />
+    <meta property="og:type" content="website" />
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link
+      rel="preload"
+      href="/fonts/forum-latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
+    <link
+      rel="preload"
+      href="/fonts/roboto-latin-400.woff2"
+      as="font"
+      type="font/woff2"
+      crossorigin
+    />
     <title>Tony Mastromarino</title>
   </head>
   <body>
     <div id="app"></div>
+    <noscript>
+      <!-- Keep in sync with src/content.js. -->
+      <p>Tony Mastromarino</p>
+      <p>
+        <a href="https://github.com/tonydoesathing">github</a> ·
+        <a href="/TonyMastromarinoResume.pdf">resume</a> ·
+        <a href="mailto:mastromarino.tony@gmail.com">email</a>
+      </p>
+    </noscript>
     <script type="module" src="/src/main.js"></script>
   </body>
 </html>
